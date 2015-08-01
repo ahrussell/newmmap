@@ -9,12 +9,12 @@
 
 \usepackage{fullpage}
 
-\title{Multilinear Maps from RLWE-variants}
-\author{Andrew H. Russell\thanks{Pomona College, {\texttt ahr12012@mymail.pomona.edu}.  Work performed while at the University of Bristol.} \and Nigel Smart}
-\date{\today}
-
-%\setlength\parindent{0pt}
-
+\def\R{\mathcal{R}}
+\def\Rq{\mathcal{R}_q}
+\def\bdfn{\mathsf{BitDecomp}}
+\def\flattenfn{\mathsf{Flatten}}
+\def\bdifn{\mathsf{BitDecomp}^{-1}}
+\def\powfn{\mathsf{Powersof2}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -26,10 +26,23 @@
 \newtheorem{definition}{Definition}
 
 
+
+\title{Multilinear Maps from RLWE-variants}
+\author{Andrew H. Russell\thanks{Pomona College, {\texttt ahr12012@mymail.pomona.edu}.  Work performed while at the University of Bristol.} \and Nigel Smart}
+\date{\today}
+
+%\setlength\parindent{0pt}
+
+
+
+
+
 \renewcommand{\labelitemii}{$\circ$}
 
 
 \begin{document}
+
+
 \maketitle
 \begin{abstract}
 We propose a new multilinear map based on a ring variant of the GSW homomorphic encryption scheme.  Our construction exploits the properties that ciphertexts are small, and that the decryption key is large and only present as a multiple of the plaintext during the decryption process.  These features allow us to hide the decryption key and publish it as a zero-tester. The security of the scheme is based on variants of the RLWE problem.  
@@ -49,7 +62,7 @@ This scheme also provides the additional advantage that arbitrary plaintext elem
 
 \paragraph{Future work.}  It remains an open problem to construct multilinear maps based on standard hard problems, or to construct ``true" multilinear maps rather than the graded encoding schemes presented here and in prior works.
 
-\paragraph{Overview of the map.}  The encoding of elements and homomorphic operations are exactly as in the GSW HE scheme, except we work over a polynomial ring $R_q = \mathbb{Z}_q[x] / \left<x^n + 1\right>$ instead of $\mathbb{Z}_q$.  That is, ciphertexts look like the following, where $\mu$ is the plaintext and $pk$ is the public key hiding the plaintext:
+\paragraph{Overview of the map.}  The encoding of elements and homomorphic operations are exactly as in the GSW HE scheme, except we work over a polynomial ring $\Rq = \mathbb{Z}_q[x] / \left<x^n + 1\right>$ instead of $\mathbb{Z}_q$.  That is, ciphertexts look like the following, where $\mu$ is the plaintext and $pk$ is the public key hiding the plaintext:
 
 $$C = \mu + pk$$
 
@@ -59,7 +72,7 @@ $$\mu\cdot sk + e$$
 
 The plaintext $\mu$ can then be recovered because $e$ is a small value.  The key thing to note is that the decryption key is ``large," so that when we decrypt the result will be large if and only if $\mu$ is non-zero.  Thus, if we can somehow securely publish the decryption key we can zero-test encodings, giving us a multilinear map.
 
-A starting point for hiding the key is to note that ciphertexts are themselves small (binary matrices), as they are a result of the $\mathsf{Flatten}$ function, so that we can add a small value $\epsilon$ to the decryption key and still get the desired property:
+A starting point for hiding the key is to note that ciphertexts are themselves small (binary matrices), as they are a result of the $\flattenfn$ function, so that we can add a small value $\epsilon$ to the decryption key and still get the desired property:
 \begin{align*}
 C\cdot p_{zt} &= C(sk + \epsilon)\\
 &= \mu\cdot sk + e + C\epsilon \\
@@ -68,43 +81,43 @@ C\cdot p_{zt} &= C(sk + \epsilon)\\
 
 \section{Preliminaries}
 
-First, let $R = \mathbb{Z}[x] / \left<x^n + 1\right>$ where $n$ is a power of 2, and let $R_q = R/qR \cong \mathbb{Z}_q[x] / \left<x^n + 1\right> $ be the ring that contains $\ell = \lceil\log q\rceil$ bit coefficients.
+First, let $\R = \mathbb{Z}[x] / \left<x^n + 1\right>$ where $n$ is a power of 2, and let $\Rq = \R/q\R \cong \mathbb{Z}_q[x] / \left<x^n + 1\right> $ be the ring that contains $\ell = \lceil\log q\rceil$ bit coefficients.
 
 \subsection{Bit operations}
 
-The GSW paper outlines a few operations on vectors that we extend to the ring setting, as in \cite{shield}.  For some $k$, let $\ell = \lceil \log q \rceil$ and $N = k\ell$, and let $\vec{a}$ be a $k$-dimensional vector of ring elements in $R_q$.  Then, $\mathsf{BitDecomp} = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1}) \in R_q^N$ where $a_{i,j}$ is the polynomial whose entries are the $j$-th bit each coefficient in the $i$-th entry of $\vec{a}$.  That is, we decompose a vector $\vec{a}$ that has polynomials with $\ell$-bit coefficients into an $N$-dimensional vector with polynomials of 0/1 coefficients.  $\mathsf{BitDecomp}^{-1}$ is the inverse of this operation.  Specifically, for a vector $\vec{a} = $ $(a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1})$, we define $\mathsf{BitDecomp}^{-1}(\vec{a}) = (\sum 2^j a_{1,j}, \ldots, \sum 2^j a_{k, j})$.  Note that we define this function for any vector $\vec{a} \in R_q^N$, not just vectors with 0/1 polynomials.  Next, for a vector $\vec{a} \in R_q^N$, define $\mathsf{Flatten}(\vec{a}) = \mathsf{BitDecomp}(\mathsf{BitDecomp}^{-1}(\vec{a}))$.  Finally, for a vector $\vec{b} \in R_q^k$ define $\mathsf{Powersof2}(\vec{b}) = (b_1, 2b_1, \ldots, 2^{\ell-1}b_1, \ldots, b_k, 2b_k, \ldots, 2^{\ell-1}b_k)$.  As in GSW, the important properties of these operations are:
+The GSW paper outlines a few operations on vectors that we extend to the ring setting, as in \cite{shield}.  For some $k$, let $\ell = \lceil \log q \rceil$ and $N = k\ell$, and let $\vec{a}$ be a $k$-dimensional vector of ring elements in $\Rq$.  Then, $\bdfn = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1}) \in \Rq^N$ where $a_{i,j}$ is the polynomial whose entries are the $j$-th bit each coefficient in the $i$-th entry of $\vec{a}$.  That is, we decompose a vector $\vec{a}$ that has polynomials with $\ell$-bit coefficients into an $N$-dimensional vector with polynomials of 0/1 coefficients.  $\bdifn$ is the inverse of this operation.  Specifically, for a vector $\vec{a} = $ $(a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1})$, we define $\bdifn(\vec{a}) = (\sum 2^j a_{1,j}, \ldots, \sum 2^j a_{k, j})$.  Note that we define this function for any vector $\vec{a} \in \Rq^N$, not just vectors with 0/1 polynomials.  Next, for a vector $\vec{a} \in \Rq^N$, define $\flattenfn(\vec{a}) = \bdfn(\bdifn(\vec{a}))$.  Finally, for a vector $\vec{b} \in \Rq^k$ define $\powfn(\vec{b}) = (b_1, 2b_1, \ldots, 2^{\ell-1}b_1, \ldots, b_k, 2b_k, \ldots, 2^{\ell-1}b_k)$.  As in GSW, the important properties of these operations are:
 
 \begin{itemize}
-\item $\left< \mathsf{BitDecomp}(\vec{a}), \mathsf{Powersof2}(\vec{b}) \right> = \left< \vec{a}, \vec{b} \right>$
-\item $\left< \mathsf{Flatten}(\vec{a}), \mathsf{Powersof2}(\vec{b}) \right> = \left< \vec{a}, \mathsf{Powersof2}(\vec{b}) \right>$
+\item $\left< \bdfn(\vec{a}), \powfn(\vec{b}) \right> = \left< \vec{a}, \vec{b} \right>$
+\item $\left< \flattenfn(\vec{a}), \powfn(\vec{b}) \right> = \left< \vec{a}, \powfn(\vec{b}) \right>$
 \end{itemize}
 
-We extend these operations to matrices by performing them on each row.  Thus, for matrices $A \in R_q^{N \times k}$, $C \in R_q^{N \times N}$ and a vector $\vec{b} \in R_q^k$ we have:
+We extend these operations to matrices by performing them on each row.  Thus, for matrices $A \in \Rq^{N \times k}$, $C \in \Rq^{N \times N}$ and a vector $\vec{b} \in \Rq^k$ we have:
 
 \begin{itemize}
-\item $\mathsf{BitDecomp}(A)\cdot\mathsf{Powersof2}(\vec{b}) = A\cdot\vec{b}$
-\item $\mathsf{Flatten}(C)\cdot\mathsf{Powersof2}(\vec{b}) = C\cdot\mathsf{Powersof2}(\vec{b})$
+\item $\bdfn(A)\cdot\powfn(\vec{b}) = A\cdot\vec{b}$
+\item $\flattenfn(C)\cdot\powfn(\vec{b}) = C\cdot\powfn(\vec{b})$
 \end{itemize}
 
-The $\mathsf{Flatten}$ function keeps our encodings small while maintaining correctness with the zero-tester, which is a result of the $\mathsf{Powersof2}$ function.  In our scheme we set $k = 2$ so that $N = 2\ell$.
+The $\flattenfn$ function keeps our encodings small while maintaining correctness with the zero-tester, which is a result of the $\powfn$ function.  In our scheme we set $k = 2$ so that $N = 2\ell$.
 \section{Our construction}
 
 We are now ready to outline our map, which is an instantiation of a graded encoding scheme as in prior works \cite{clt, ggh13a, clt15}.  The basic operations (setup, encoding, addition, multiplication) of our scheme are essentially identical to those of the GSW scheme.
 
-\paragraph{Setup: $(\mathsf{pp},p_{zt}) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  The parameters $q$ and $n$ define the ring $R_q$.  Set $m = O(\log q)$ and $N = 2\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $R_q$.  We generate the {\bf encoding key} $A$ by drawing $\vec{e} \leftarrow \chi^m$, $\vec{a} \leftarrow R_q^m$, and $t \leftarrow R_q$.  Set $\vec{b} = \vec{a}t + \vec{e}$ and $\vec{s} = (1, -t)^T$ and $A = \big(\vec{b} \; \big| \; \vec{a}\big)$.  We generate a level-1 encoding $X^{(1)}$ by drawing $R \leftarrow \{0,1\}^{N\times m}$ and setting $X^{(1)} = \mathsf{Flatten}(I_N + \mathsf{BitDecomp}(R\cdot A))$.  We generate the {\bf zero-testing parameter} $p_{zt}$ by first drawing $z \leftarrow R_q$, $\alpha \leftarrow \chi$ and $\vec{\epsilon}, \vec{\delta} \leftarrow \chi^N$ and then setting $p_{zt} = \alpha(z^\kappa\vec{v} + \vec{\delta}) + \vec{\epsilon}$ where $\vec{v} =  \mathsf{Powersof2}(\vec{s})$.  We then output $\mathsf{pp} = (\kappa, q,n,m,N, X^{(1)})$ and $p_{zt}$.
+\paragraph{Setup: $(\mathsf{pp},p_{zt}) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  The parameters $q$ and $n$ define the ring $\Rq$.  Set $m = O(\log q)$ and $N = 2\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $\Rq$.  We generate the {\bf encoding key} $A$ by drawing $\vec{e} \leftarrow \chi^m$, $\vec{a} \leftarrow \Rq^m$, and $t \leftarrow \Rq$.  Set $\vec{b} = \vec{a}t + \vec{e}$ and $\vec{s} = (1, -t)^T$ and $A = \big(\vec{b} \; \big| \; \vec{a}\big)$.  We generate a level-1 encoding $X^{(1)}$ by drawing $R \leftarrow \{0,1\}^{N\times m}$ and setting $X^{(1)} = \flattenfn(I_N + \bdfn(R\cdot A))$.  We generate the {\bf zero-testing parameter} $p_{zt}$ by first drawing $z \leftarrow \Rq$, $\alpha \leftarrow \chi$ and $\vec{\epsilon}, \vec{\delta} \leftarrow \chi^N$ and then setting $p_{zt} = \alpha(z^\kappa\vec{v} + \vec{\delta}) + \vec{\epsilon}$ where $\vec{v} =  \powfn(\vec{s})$.  We then output $\mathsf{pp} = (\kappa, q,n,m,N, X^{(1)})$ and $p_{zt}$.
 
-\paragraph{Encoding:  $C \leftarrow \mathsf{enc}(\mathsf{pp},\mu,i)$.}  In general, a fresh encoding of a plaintext $\mu \in R_q$ at level-$i$ will look like the following, where $R \xleftarrow{\$} \{0,1\}^{N\times m}$:
+\paragraph{Encoding:  $C \leftarrow \mathsf{enc}(\mathsf{pp},\mu,i)$.}  In general, a fresh encoding of a plaintext $\mu \in \Rq$ at level-$i$ will look like the following, where $R \xleftarrow{\$} \{0,1\}^{N\times m}$:
 
-$$C = \mathsf{Flatten}\left(z^{-i}(\mu I_{N} + \mathsf{BitDecomp}(R\cdot A))\right)$$
-Note that encodings are small as they are the result of the $\mathsf{Flatten}$ function.  One advantage of this scheme is it allows for the public encoding of plaintext elements because we can make $A$ public.  First, a user will encode their plaintext $\mu$ to level-$i$ by computing: $$C = \mathsf{Flatten}(\mu\cdot I_N) \cdot \Pi_{j=1}^i X^{(1)}$$ using the  multiplication operator of the scheme.  Astute readers will note that this is the same as multiplying a ciphertext by a constant in GSW.  This is also equivalent to multiplying a level-0 encoding with no noise (the plaintext) to level-$i$.  
+$$C = \flattenfn\left(z^{-i}(\mu I_{N} + \bdfn(R\cdot A))\right)$$
+Note that encodings are small as they are the result of the $\flattenfn$ function.  One advantage of this scheme is it allows for the public encoding of plaintext elements because we can make $A$ public.  First, a user will encode their plaintext $\mu$ to level-$i$ by computing: $$C = \flattenfn(\mu\cdot I_N) \cdot \Pi_{j=1}^i X^{(1)}$$ using the  multiplication operator of the scheme.  Astute readers will note that this is the same as multiplying a ciphertext by a constant in GSW.  This is also equivalent to multiplying a level-0 encoding with no noise (the plaintext) to level-$i$.  
 
-Note that we do not need to rerandomize elements encoded in this way because matrix inversion is not homomorphic with respect to the $\mathsf{Flatten}$ function (i.e. an adversary could not just multiply by $(X^{(1)})^{-1}$ or something similar to go down a level).
+Note that we do not need to rerandomize elements encoded in this way because matrix inversion is not homomorphic with respect to the $\flattenfn$ function (i.e. an adversary could not just multiply by $(X^{(1)})^{-1}$ or something similar to go down a level).
 
-\paragraph{Zero testing:  $\mathsf{isZero}(C, p_{zt}) \stackrel{?}{=} 0/1$.}  To zero-test a (fresh) encoding $C$ of $\mu$ at level-$\kappa$, compute $\vec{w} = C\cdot p_{zt}$ and output 1 if $||\vec{w}|| < P$ and 0 otherwise.  To see why this is correct, note that we have:  $$A\vec{s} = \vec{b} - \vec{a}t = \vec{e}$$  Thus, $\mathsf{BitDecomp}(A)\vec{v} = \vec{e}$ as $\vec{v} = \mathsf{Powersof2}(\vec{s})$.  Additionally, $\mathsf{Flatten}(C)\cdot\mathsf{Powersof2}(\vec{s}) = C\cdot \mathsf{Powersof2}(\vec{s}) = C\cdot\vec{v}$, so we have:
+\paragraph{Zero testing:  $\mathsf{isZero}(C, p_{zt}) \stackrel{?}{=} 0/1$.}  To zero-test a (fresh) encoding $C$ of $\mu$ at level-$\kappa$, compute $\vec{w} = C\cdot p_{zt}$ and output 1 if $||\vec{w}|| < P$ and 0 otherwise.  To see why this is correct, note that we have:  $$A\vec{s} = \vec{b} - \vec{a}t = \vec{e}$$  Thus, $\bdfn(A)\vec{v} = \vec{e}$ as $\vec{v} = \powfn(\vec{s})$.  Additionally, $\flattenfn(C)\cdot\powfn(\vec{s}) = C\cdot \powfn(\vec{s}) = C\cdot\vec{v}$, so we have:
 \begin{align*}
 C\cdot p_{zt} &= \alpha z^\kappa C\vec{v} + C(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha(z^\kappa z^{-\kappa})(\mu + \mathsf{BitDecomp}(R\cdot A))\vec{v} + C(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha(\mu \vec{v} + \mathsf{BitDecomp}(R\cdot A)\vec{v}) + C(\alpha\vec{\delta} + \vec{\epsilon})\\
+&= \alpha(z^\kappa z^{-\kappa})(\mu + \bdfn(R\cdot A))\vec{v} + C(\alpha\vec{\delta} + \vec{\epsilon})\\
+&= \alpha(\mu \vec{v} + \bdfn(R\cdot A)\vec{v}) + C(\alpha\vec{\delta} + \vec{\epsilon})\\
 &= \alpha(\mu \vec{v} + R\vec{e}) + C(\alpha\vec{\delta} + \vec{\epsilon})
 \end{align*} 
 
@@ -126,22 +139,22 @@ This is the lemma that states we can extract a random function of $\lambda$ bits
 
 \paragraph{Addition \& subtraction.}  For two encodings $C_1$ and $C_2$ at the same level-$i$, define the addition and subtraction functions as follows:
 \begin{align*}
-\mathsf{add}(C_1,C_2) &= \mathsf{Flatten}(C_1 + C_2)\\
-\mathsf{sub}(C_1,C_2) &= \mathsf{Flatten}(C_1 - C_2)
+\mathsf{add}(C_1,C_2) &= \flattenfn(C_1 + C_2)\\
+\mathsf{sub}(C_1,C_2) &= \flattenfn(C_1 - C_2)
 \end{align*}
 As in the GSW scheme, it is clear that these are both correct homomorphic operations with respect to the zero-tester.
 
 \paragraph{Multiplication.}  Suppose that $C_1$ encodes a plaintext $\mu_1$ at level-$i$ and $C_2$ encodes a plaintext $\mu_2$ at level-$j$ with $i+j \leq \kappa$.  Then we define the multiplication operator as follows:
 
-$$\mathsf{mult}(C_1, C_2) = \mathsf{Flatten}(C_1 \cdot C_2)$$
+$$\mathsf{mult}(C_1, C_2) = \flattenfn(C_1 \cdot C_2)$$
 To see that this is correct suppose that $i+j = \kappa$ (i.e., we can zero-test).  Then:
 \begin{align*}
-\mathsf{mult}(C_1, C_2)\cdot p_{zt} &= \alpha (z^\kappa) C_1C_2\vec{v} + \mathsf{Flatten}(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha (z^\kappa z^{-i})C_1(\mu_2\vec{v} + \vec{e_2}) + \mathsf{Flatten}(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha (z^\kappa z^{-i})C_1(\mu_2\vec{v} + \vec{e_2}) + \mathsf{Flatten}(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
+\mathsf{mult}(C_1, C_2)\cdot p_{zt} &= \alpha (z^\kappa) C_1C_2\vec{v} + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
+&= \alpha (z^\kappa z^{-i})C_1(\mu_2\vec{v} + \vec{e_2}) + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
+&= \alpha (z^\kappa z^{-i})C_1(\mu_2\vec{v} + \vec{e_2}) + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
 &= \alpha(z^\kappa z^{-i} z^{-j})(\mu_1\mu_2 \vec{v} + \mu_2 \vec{e_1} + C_1\vec{e_2}) \\
-&\quad + \mathsf{Flatten}(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha (\mu_1\mu_2 \vec{v} + \mu_2 \vec{e_1} + C_1\vec{e_2}) + \mathsf{Flatten}(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})
+&\quad + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
+&= \alpha (\mu_1\mu_2 \vec{v} + \mu_2 \vec{e_1} + C_1\vec{e_2}) + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})
 \end{align*}
 Note that this expression will be small if and only if $\mu_1\mu_2 = 0$ (and $\mu_2$ is also small).
 
@@ -198,9 +211,9 @@ Let $n$, $q$ and $\chi$ be set such that the RLWE$_{n,q,\chi}$ assumption holds.
 The security of our scheme relies on hiding $t$ and $z$.  With these parameters, an adversary could decrypt an encoding at any level.  We will make a few RLWE-like assumptions based on these parameters.  Note that in all of these assumptions, the ``public key" $\alpha$ is not given out like in the classical RLWE problem, which may increase security (though is not known to be necessary).
 
 \subsection{Previous attacks}
-It is not hard to see that our construction avoids the zeroizing attacks (\cite{chl}) on the \cite{clt} scheme as our encodings and zero-testing elements simply do not support the right operations for those attacks to work (it is helpful to note that the $\mathsf{Flatten}$ function only preserves some homomorphism with respect to $\mathsf{Powersof2}$ vectors, which further restricts the sorts of useful operations that can be performed on encodings).
+It is not hard to see that our construction avoids the zeroizing attacks (\cite{chl}) on the \cite{clt} scheme as our encodings and zero-testing elements simply do not support the right operations for those attacks to work (it is helpful to note that the $\flattenfn$ function only preserves some homomorphism with respect to $\powfn$ vectors, which further restricts the sorts of useful operations that can be performed on encodings).
 
-The weak-DL attack on GGH and the variant matrix-GGH (\cite{cgh, hj}) worked by attacking the private modulus $g$, which is a small element of the ring $R$.  This fails in our scheme because do not rely on encodings being small representatives of cosets of $\mathcal{I}_g$---we achieve small plaintexts (and thus bounded noise growth) through the repeated application of the $\mathsf{Flatten}$ function, so our ``ideal" is generated by a ``uniform" element, namely, a RLWE instance.  We also have not been able to attack the scheme in the event that $A$ is made public.
+The weak-DL attack on GGH and the variant matrix-GGH (\cite{cgh, hj}) worked by attacking the private modulus $g$, which is a small element of the ring $R$.  This fails in our scheme because do not rely on encodings being small representatives of cosets of $\mathcal{I}_g$---we achieve small plaintexts (and thus bounded noise growth) through the repeated application of the $\flattenfn$ function, so our ``ideal" is generated by a ``uniform" element, namely, a RLWE instance.  We also have not been able to attack the scheme in the event that $A$ is made public.
 
 Additionally, we may have also reduced the number of potential vulnerabilities by not publishing level-$0$ encodings which we do not need for sampling unlike in e.g. \cite{clt}.
 
@@ -215,7 +228,7 @@ This attack does not apply to our scheme because the reduction runs in $\mathsf{
 We now draw our attention to using the zero-testing element in breaking the scheme, as is done in all attacks on previous schemes.  Note that our zero-testing element looks like the following:
 \begin{align*}
 p_{zt} &= \alpha (z^\kappa \vec{v} + \vec{\delta}) + \vec{\epsilon}\\
-&= \alpha (z^\kappa \mathsf{Powersof2}(\vec{s}) + \vec{\delta}) + \vec{\epsilon}\\\\
+&= \alpha (z^\kappa \powfn(\vec{s}) + \vec{\delta}) + \vec{\epsilon}\\\\
 &= \left( \begin{array}{c}
 \alpha (z^\kappa + \delta_1) + \epsilon_1\\
 \alpha (z^\kappa2 + \delta_2) + \epsilon_2\\
@@ -230,7 +243,7 @@ Thus, we need the following assumption to hold so that we protect the parameters
 
 \begin{assumption}
 \label{rlwevar}
-Draw $s \leftarrow R_q$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha(s + \delta_i) + \epsilon_i\big)_{i=1}^{\ell} \in R_q^\ell$, recover $s$.
+Draw $s \leftarrow \Rq$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha(s + \delta_i) + \epsilon_i\big)_{i=1}^{\ell} \in \Rq^\ell$, recover $s$.
 \end{assumption}
 
 
@@ -238,13 +251,13 @@ Draw $s \leftarrow R_q$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i,
 
 A zero-tested encoding at level-$i$ will look like the following, where $\vec{e_{\circ}}$ is the error after some number of operations:
 
-$$C p_{zt} = \alpha z^{\kappa - i}(\mu \vec{v} + \vec{e_{\circ}}) + C(\alpha\vec{\delta} + \vec{\epsilon}) \in R_q^N$$
+$$C p_{zt} = \alpha z^{\kappa - i}(\mu \vec{v} + \vec{e_{\circ}}) + C(\alpha\vec{\delta} + \vec{\epsilon}) \in \Rq^N$$
 which we can rewrite as:
 $$Cp _{zt} = \alpha z^{\kappa - i}(\mu \vec{v} + \vec{e_{\circ}} + C\vec{\delta}) + C\vec{\epsilon}$$
 Thus, we need the following assumption to hold in the case of $i < \kappa$:
 \begin{assumption}
 \label{rlwevar2}
-Draw $s \leftarrow R_q$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha s \delta_i + \epsilon_i)_{i=1}^{\ell} \in R_q^\ell$, recover $s$.\\
+Draw $s \leftarrow \Rq$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha s \delta_i + \epsilon_i)_{i=1}^{\ell} \in \Rq^\ell$, recover $s$.\\
 \end{assumption}
 
 In the case of $\mu = 0$ we have:
@@ -254,11 +267,11 @@ Cp _{zt} = \alpha z^{\kappa - i}(\vec{e_{\circ}} + C\vec{\delta}) + C\vec{\epsil
 So the following assumption needs to hold in the case of $i = \kappa$:
 \begin{assumption}
 \label{rlwevar3}
-Draw $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha \delta_i + \epsilon_i\big)_{i=1}^{\ell} \in R_q^\ell$, recover either $\delta_i$ or $\epsilon_i$.\\
+Draw $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha \delta_i + \epsilon_i\big)_{i=1}^{\ell} \in \Rq^\ell$, recover either $\delta_i$ or $\epsilon_i$.\\
 \end{assumption}
 
-We could also let $C = \mathsf{BitDecomp}(A)$, because $A$ is public, giving us:
-$$Cp _{zt} = \alpha z^{\kappa}(\vec{e} + \mathsf{BitDecomp}(A)\vec{\delta}) + \mathsf{BitDecomp}(A)\vec{\epsilon}$$
+We could also let $C = \bdfn(A)$, because $A$ is public, giving us:
+$$Cp _{zt} = \alpha z^{\kappa}(\vec{e} + \bdfn(A)\vec{\delta}) + \bdfn(A)\vec{\epsilon}$$
 
 Which reduces to Assumption \ref{rlwevar2}.
 
