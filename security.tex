@@ -30,10 +30,10 @@ Let $n$, $q$ and $\chi$ be set such that the RLWE$_{n,q,\chi}$ assumption holds.
 
 The security of our scheme relies on hiding $\vec{v}$, $z$ and $T$; with these parameters an adversary could decrypt an encoding at any level.  We attempt to hide these values through creating (R)LWE instances.  Thus, the security of the scheme relies on the fact that using the basic operations of the scheme (zero-testing, multiplication, addition), an adversary is only able to produce these RLWE-esque instances.  
 
-\subsection{Previous attacks}
-Attacks on previous scheme \cite{chl,cgh,hj} fail against our scheme for a number of reasons, but the principal advantage that our scheme has over others in defending against zeroizing attacks is that zero-tested encodings of $0$ do not give out multiples of noise elements, and instead result in RLWE-esque instances.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element like our $\alpha$ and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
+\subsection{Zeroizing attacks}
+Attacks on previous schemes \cite{chl,cgh,hj} that make use of encodings of 0 fail against our scheme for a number of reasons, but the principal advantage that our scheme has over others is that zero-tested encodings of $0$ are not exact multiples of noise elements, and instead result in RLWE-esque instances with some additive noise.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element like our $\alpha$ and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
 $$\left<\w, C \u\right> = (1,1,\ldots, 1)\cdot(\alpha (\bdfn(U)\vec{e_{\circ}} + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon})$$
-where $\vec{e_{\circ}}$ is the noise present in the encoding, and $\alpha, \vec{\delta}$, and $\vec{\epsilon}$ are small ring elements.  So this result is essentially a ring element $hr + e$ in the notation of CLT and GGH, which completely breaks the previous attacks which rely on multiplicative structure for things like GCD operations. 
+where $\vec{e_{\circ}}$ is the noise present in the encoding, and $\alpha, \vec{\delta}$, and $\vec{\epsilon}$ are small ring elements.  So this result is essentially a ring element $hr + e$ in the notation of CLT and GGH, which completely breaks the previous attacks that rely on this multiplicative structure for things like GCD operations. 
 
 \subsection{The homomorphism of $\flattenfn$}
 
@@ -62,12 +62,13 @@ It is clear that we are not going to be able to get anything useful out of this 
 \begin{equation}\label{eq:topleveltested}
 \left<\w, C \u\right> = (1,1,\ldots,1)\cdot(\alpha (\bdfn(U)\vec{e_{\circ}} + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon})
 \end{equation}
-This essentially reduces to the RLWE-esque assumption:
-\begin{assumption}
+This essentially reduces to this assumption:
+\begin{assumption}[RLWE-variant]
 \label{rlwevar}
-Given a vector $\alpha\vec{\delta} + \vec{\epsilon} \in \Rq^k$ for $k \in \mathsf{poly}(\lambda)$ where $\alpha \leftarrow \mathcal{D}_\alpha$ and $(\vec{\delta}, \vec{\epsilon}) \leftarrow D_\delta^k \times D_\epsilon^k$, recover $\vec{\delta}$ or $\vec{\epsilon}$.
+Given $\alpha\delta + \epsilon \in \Rq$ where $(\alpha, \delta, \epsilon) \leftarrow \mathcal{D}_\alpha \times \mathcal{D}_\delta \times \mathcal{D}_\epsilon$, recover $\delta$ or $\epsilon$.
 \end{assumption}
 
+Note that even in the case that this is a bad hardness assumption for protecting the noise (though there is currently no reason to think so), an adversary will still only be able to recover a subset-sum of the noise.
 \subsection{Some additional notes}
 
-Though our scheme's security does not reduce directly to RLWE, we remain confident in the scheme's security based on the fact that the application of the zero-testing parameter only produces these instances of a RLWE variant where the ``public key" is not drawn from a uniform distribution (though $\alpha$ is not public anyway).  Additionally, although we take the precaution of hiding the parameters $A$ and $\alpha$, we have not been able to break the scheme in the case that they are made public. 
+Though we have not been able to reduce the security of our scheme directly to RLWE or other standard assumptions, we remain confident in the scheme's security based on the fact that the application of the zero-testing parameter only produces these instances of a RLWE variant where the ``public key" is not drawn from a uniform distribution (though $\alpha$ is not public anyway).  Additionally, although we take the precaution of hiding the parameters $A$ and $\alpha$, we have not been able to break the scheme in the case that they are made public. 
