@@ -1,0 +1,15 @@
+\section{An application: $N$-way key exchange}
+
+We now present the canonical use-case for our scheme: $N$-way one round key exchange, which we outline in the following steps.
+
+\begin{enumerate}
+\item  Let $\kappa = N - 1$. A trusted third party obtains the public parameters $(\mathsf{pp}, \pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$  and subsequently distributes the parameters to each player.
+
+\item Each player $i$ runs the $\mathsf{samp}(\mathsf{pp})$ algorithm to obtain a random level-0 encoding $U_i$.  Then the player computes $C_i \leftarrow \mathsf{enc}(\mathsf{pp}, 1, U_i)$ and publishes this level-1 encoding.
+
+\item The $i$th player now computes the level-$\kappa$ encoding $$C'_i = U_i \cdot \prod_{j\not= i \in [N]} C_j$$ using the multiplication operator of the scheme.
+
+\item  Finally, each player computes $s \leftarrow \mathsf{ext}(\mathsf{pp}, \pzt, C'_i)$ to extract the shared secret $s$.
+\end{enumerate}
+
+Correctness follows from Lemma \ref{extraction}, whereas security follows from the hardness of the GDDH assumption for our scheme.

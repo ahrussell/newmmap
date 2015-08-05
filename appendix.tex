@@ -1,0 +1,53 @@
+\renewcommand\thesection{\Alph{section}}
+\setcounter{section}{0}
+\setcounter{definition}{0}
+\section{Graded Encoding Schemes}
+
+Graded encoding schemes are an approximation of multilinear maps.  In particular, encodings in graded encoding schemes can be randomized rather than deterministic.  We first recall the original definition of multilinear maps:
+
+\begin{definition}[Multilinear Maps \cite{bs}]
+A map $e: G_1^\kappa \to G_2$ is a \emph{$\kappa$-multilinear map} if it satisfies the following properties:
+\begin{enumerate}
+\item $G_1$ and $G_2$ are groups of the same prime order $p$;
+\item If $a_1, \ldots, a_\kappa \in \mathbb{Z}$ and $g_1, \ldots, g_\kappa \in G_1$ then $$e(g_1^{a_1}, \ldots, g_\kappa^{a_\kappa}) = e(g_1, \ldots, g_\kappa)^{a_1 \cdots a_\kappa};$$
+\item If $g$ is a generator of $G_1$ then $e(g, \ldots, g)$ is a generator of $G_2$. 
+\end{enumerate}
+\end{definition}
+
+Graded encoding schemes are similar, except they give rise to many maps $G_i \times G_j \to G_{i+j}$ through the multiplication operation, and encodings can be randomized.  We begin by recalling the definition of graded encoding systems:
+
+\begin{definition}[Graded Encoding Systems \cite{ggh13a}]
+A \emph{$\kappa$-graded encoding system} for a ring $R$ is a system of sets $\mathcal{S} = \{S_v^{(\alpha)} \in \{0,1\}^* \mid v \in \mathbb{N}, \alpha \in R\}$ that satisfies the following properties:
+
+\begin{enumerate}
+\item For every $v \in \mathbb{N}$, the sets $\{S_v^{(\alpha)} \mid \alpha \in R\}$ are disjoint;
+\item There are binary operations $+$ and $-$ such that for every $\alpha_1, \alpha_2$, $v \in \mathbb{N}$, and every $u_1 \in S_v^{(\alpha_1)}$ and $u_2 \in S_v^{(\alpha_2)}$ we have $$u_1 + u_2 \in S_v^{(\alpha_1 + \alpha_2)}$$ $$u_1 - u_2 \in S_v^{(\alpha_1 - \alpha_2)}$$ where $\alpha_1 + \alpha_2$ and $\alpha_1 - \alpha_2$ are addition and subtraction in the ring $R$;
+\item There is an (associative) binary operation $\cdot$ such that for every $\alpha_1, \alpha_2 \in R$ and $v_1, v_2 \in \mathbb{N}$ such that $v_1 + v_2 \leq \kappa$ and every $u_1 \in S_v^{(\alpha_1)}$ and $u_2 \in S_v^{(\alpha_2)}$ we have $$u_1 \cdot u_2 \in S_{v_1 + v_2}^{(\alpha_1 \cdot \alpha_2)}$$ where $\alpha_1\cdot\alpha_2$ is multiplication in $R$.
+\end{enumerate}
+\end{definition}
+
+The related definition of graded encoding schemes specifies the public sampling and rerandomization of elements, which we adapt from \cite{clt15}:
+
+\begin{definition}[Graded Encoding Schemes]
+A (symmetric) \emph{$\kappa$-graded encoding scheme} for a ring $R$ is a system of sets $\mathcal{S} = \{S_v^{(\alpha)} \in \{0,1\}^* \mid v \in \mathbb{N}, \alpha \in R\}$ consists of the following PPT procedures:
+
+\begin{description}
+\item[$\mathsf{setup}(1^\lambda, 1^\kappa):$]  For a security parameter $\lambda$ and multilinearity level $\kappa$, output $(\mathsf{pp}, \pzt)$ where $\mathsf{pp}$ is the description of a graded encoding system and $\pzt$ is a zero-test parameter;
+\item[$\mathsf{samp}(\mathsf{pp}):$]  Outputs a random level-0 encoding $u \in S_0^{(\alpha)}$ for a random $\alpha \in R$;
+\item[$\mathsf{enc}(\mathsf{pp}, i, u):$]  For a level $i \leq k$ and a level-0 encoding $u \in S_0^{(\alpha)}$, outputs a level-$i$ encoding $u' \in S_i^{(\alpha)}$;
+\item[$\mathsf{rerand}(\mathsf{pp}, i, u):$]  For a level-$i$ encoding $u \in S_i^{(\alpha)}$, outputs another level-$i$ encoding $u' \in S_i^{(\alpha)}$ such that for any two $u_1, u_2 \in S_i^{(\alpha)}$ the output distributions of $\mathsf{rerand}(\mathsf{pp}, i, u_1)$ and $\mathsf{rerand}(\mathsf{pp}, i, u_2)$ are nearly the same;
+\item[$\mathsf{neg}(\mathsf{pp}, u):$]  For a level-$i$ encoding $u \in S_i^{(\alpha)}$, outputs another level-$i$ encoding $u' \in S_i^{(-\alpha)}$;
+\item[$\mathsf{add}(\mathsf{pp}, u_1, u_2):$]  For two level-$i$ encodings $u_1 \in S_i^{(\alpha_1)}$ and $u_2 \in S_i^{(\alpha_2)}$, outputs another level-$i$ encoding $u' \in S_i^{(\alpha_1 + \alpha_2)}$;
+\item[$\mathsf{mult}(\mathsf{pp}, u_1, u_2):$]  For a level-$i$ encoding $u_1 \in S_i^{(\alpha_1)}$ and a level-$j$ encoding$u_2 \in S_j^{(\alpha_2)}$ where $i+j \leq \kappa$, outputs a level-$(i+j)$ encoding $u' \in S_{i+j}^{(\alpha_1 \cdot \alpha_2)}$;
+\item[$\mathsf{isZero}(\mathsf{pp}, u, \pzt):$]  For a level-$\kappa$ encoding $u \in S_\kappa^{(\alpha)}$ and zero-testing parameter $\pzt$, outputs $1$ if $\alpha = 0$ and $0$ otherwise with negligible probability;
+\item[$\mathsf{ext}(\mathsf{pp}, \pzt, u):$]  For a level-$k$ encoding $u \in S_\kappa^{(\alpha)}$ and zero-testing parameter $\pzt$, outputs a $\lambda$-bit string $s$ such that:
+\begin{enumerate}
+\item For any $\alpha \in R$ and $u_1, u_2 \in S_\kappa^{(\alpha)}$, $\mathsf{ext}(\mathsf{pp}, \pzt, u_1) = \mathsf{ext}(\mathsf{pp}, \pzt, u_2)$;
+\item The distribution $\{\mathsf{ext}(\mathsf{pp}, \pzt, u) \mid \alpha \leftarrow R, u \leftarrow S_\kappa^{(\alpha)}\}$ is nearly uniform over $\{0,1\}^\lambda$.
+\end{enumerate}
+\end{description}
+\end{definition}
+
+\section{Proof of Lemma \ref{zerotesting}}
+
+\section{Proof of Lemma \ref{extraction}}

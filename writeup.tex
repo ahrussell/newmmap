@@ -1,4 +1,4 @@
-\documentclass[11pt]{article} % use larger type; default would be 10pt
+\documentclass[11pt]{article}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -18,6 +18,8 @@
 \def\powfn{\mathsf{Powersof2}}
 \def\pzt{\bm{p}_{zt}}
 
+\newcommand{\norm}[2]{\left\lVert#2\right\rVert_#1}
+
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
@@ -29,15 +31,11 @@
 
 
 
-\title{Multilinear Maps from RLWE-variants}
+\title{Candidate Multilinear Maps from RLWE-variants}
 \author{Andrew H. Russell\thanks{Pomona College, \texttt{ahr12012@mymail.pomona.edu}.  Work performed while at the University of Bristol.} \and Nigel Smart\thanks{\texttt{nigel@cs.bris.ac.uk}}}
 \date{\today}
 
 %\setlength\parindent{0pt}
-
-
-
-
 
 \renewcommand{\labelitemii}{$\circ$}
 
@@ -47,312 +45,23 @@
 
 \maketitle
 \begin{abstract}
-We propose a new multilinear map based on a ring variant of the GSW homomorphic encryption scheme.  Our construction exploits the properties that ciphertexts are small, and that the decryption key is large and only present as a multiple of the plaintext during the decryption process.  These features allow us to hide the decryption key and publish it as a zero-tester. The security of the scheme is based on variants of the RLWE problem.  
+Multilinear maps are widely used cryptographic primitives in key exchange, functional encryption, obfuscation, and more.  However, the only constructions we have are based on non-standard assumptions and have been successfully attacked in various ways.  We propose a new multilinear map based on a ring variant of the GSW homomorphic encryption scheme that has its security based on variants of the standard ring learning with errors (RLWE) problem.  Our construction exploits the properties that ciphertexts are small and decrypted elements are large if and only if the plaintext is zero.  These features allow us to hide the decryption key and publish it as a zero-tester. Though the security of our construction does not fully reduce to the RLWE assumption, it avoids the attacks made on other constructions, and we present our candidate as a step forward in basing multilinear maps on more reasonable assumptions. 
 \end{abstract}
 
-\section{Introduction}
-
-\paragraph{Multilinear maps.} Since the use of bilinear pairings to construct identity-based encryption by Boneh and Franklin \cite{bf} there has been interest in the natural extension to cryptographic maps with multilinearity $\kappa \geq 2$.  Boneh and Silverberg \cite{bs} outlined numerous applications for multilinear maps, but were pessimistic about finding constructions in the field of algebraic geometry.  Recently, Garg, Gentry, and Halevi \cite{ggh13a} proposed the idea of \textit{graded encoding schemes}, which approximate the idea of multilinear maps, and gave the first candidate (referred to as the GGH construction).  Subsequently, Coron, Lepoint, and Tibouchi proposed a similar construction but over the integers \cite{clt, clt15}, and Gentry, Gorbunov, and Halevi proposed a construction where the structure of the map is dependent on an underlying acyclic graph \cite{ggh14a}.
-
-Multilinear maps have a range of applications, the most straightforward of which is an $N$-way non-interactive key exchange \cite{bs}.  Arguably the most important and prominent application that motivates the use of multilinear maps is general program obfuscation, originally outlined in \cite{ggh13b} using the GGH scheme.
-
-\paragraph{Cryptanalysis of current constructions.}  Unfortunately, the original CLT and GGH constructions have been attacked successfully \cite{chl, cgh, hj}, resulting in total breaks or weak-discrete log attacks, despite multiple attempts to fix them \cite{bwz, clt14}.  The graph-induced construction in \cite{ggh14a} is known to be insecure in some situations through the ``approximate trapdoor" attacks outlined in the original paper, which makes it harder to reason about security in various applications, as you must prove that those situations do not arise in each specific use of the map.  The updated CLT construction \cite{clt15} proposes a new zero-testing parameter that seems to avoid these attacks at the cost of some efficiency.  
-
-\paragraph{Our contributions.}  We propose a new multilinear map based on a variant of the GSW homomorphic encryption scheme found in \cite{gsw}.  The primary advantage of our scheme is that its security is based on variants of the RLWE problem.  While a full reduction does not seem possible at this point, we provide a construction that relies on a security assumption that differs dramatically from prior constructions and completely avoids the previous attacks.
-
-This scheme also provides the additional advantage that arbitrary plaintext elements can be encoded, unlike in other constructions where the plaintext of a level-0 encoding is unknown to the user.
-
-\paragraph{Future work.}  It remains an open problem to construct multilinear maps based on standard hard problems, or to construct ``true" multilinear maps rather than the graded encoding schemes presented here and in prior works.  Further cryptanalysis of this new scheme could also bring about either greater confidence in its security or additional insight into the general problem of producing multilinear maps.
-
-\paragraph{Overview of the map.}  The encoding of elements and homomorphic operations are exactly as in the GSW HE scheme, except we work over a polynomial ring $\Rq = \mathbb{Z}_q[x] / \left<x^n + 1\right>$ instead of $\mathbb{Z}_q$.  
-
-Ciphertexts in GSW look like the following, where $\mu \in \mathbb{Z}_q$ is the plaintext, and $A$ is the public key (a ``uniform" matrix) hiding the plaintext with some noise $R$ (a binary matrix):
-
-$$C = \mu \cdot I_N + R\cdot A$$
-
-In GSW the decryption key $v$ (a vector) acts as an ``approximate inverse" to the public key $A$, so that $A\cdot v = e$ where $e$ is small.  This gives rise to the notion that $v$ is an ``approximate eigenvector" of $C$ with eigenvalue $\mu$ (called ``approximate" because of the additive noise $R\cdot e$) so that when we multiply $C$ by $v$ we get the following:
-
-$$C\cdot v = \mu\cdot v + R\cdot e$$
-
-The plaintext $\mu$ can then be recovered because $e$ is small and $R$ is a binary matrix.  The main thing to note is that the decryption key is itself ``large," so that when we apply it to a ciphertext the result will be large if and only if $\mu$ is non-zero.  Thus, if we can somehow securely publish the decryption key we can then zero-test encodings, giving us a graded encoding scheme.
-
-A starting point for hiding the key is that ciphertexts are themselves small (binary matrices), as they are a result of the $\flattenfn$ function, so that we can add a small value $\epsilon$ to the decryption key and still get the desired property:
-\begin{align*}
-C(v + \epsilon) &= \mu\cdot v + R\cdot e + C\epsilon \\
-&= \mu\cdot v + small
-\end{align*}
-
-\section{Preliminaries}
-
-First, let $\R = \mathbb{Z}[x] / \left<x^n + 1\right>$ where $n$ is a power of 2, and let $\Rq = \R/q\R \cong \mathbb{Z}_q[x] / \left<x^n + 1\right> $ be the ring that contains $\ell = \lceil\log q\rceil$ bit coefficients.
-
-\subsection{Bit operations}
-
-The GSW paper outlines a few operations on vectors that we extend to the ring setting, as in \cite{shield}.  For some $k$, let $\ell = \lceil \log q \rceil$ and $N = k\ell$, and let $\vec{a}$ be a $k$-dimensional vector of ring elements in $\Rq$.  Then, $\bdfn = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1}) \in \Rq^N$ where $a_{i,j}$ is the polynomial whose entries are the $j$-th bit each coefficient in the $i$-th entry of $\vec{a}$.  That is, we decompose a vector $\vec{a}$ that has polynomials with $\ell$-bit coefficients into an $N$-dimensional vector with polynomials of 0/1 coefficients.  $\bdifn$ is the inverse of this operation.  Specifically, for a vector $\vec{a} = $ $(a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1})$, we define $\bdifn(\vec{a}) = (\sum 2^j a_{1,j}, \ldots, \sum 2^j a_{k, j})$.  Note that we define this function for any vector $\vec{a} \in \Rq^N$, not just vectors with 0/1 polynomials.  Next, for a vector $\vec{a} \in \Rq^N$, define $\flattenfn(\vec{a}) = \bdfn(\bdifn(\vec{a}))$.  Finally, for a vector $\vec{b} \in \Rq^k$ define $\powfn(\vec{b}) = (b_1, 2b_1, \ldots, 2^{\ell-1}b_1, \ldots, b_k, 2b_k, \ldots, 2^{\ell-1}b_k)$.  As in GSW, the important properties of these operations are:
-
-\begin{itemize}
-\item $\left< \bdfn(\vec{a}), \powfn(\vec{b}) \right> = \left< \vec{a}, \vec{b} \right>$
-\item $\left< \flattenfn(\vec{a}), \powfn(\vec{b}) \right> = \left< \vec{a}, \powfn(\vec{b}) \right>$
-\end{itemize}
-
-We extend these operations to matrices by performing them on each row.  Thus, for matrices $A \in \Rq^{N \times k}$, $C \in \Rq^{N \times N}$ and a vector $\vec{b} \in \Rq^k$ we have:
-
-\begin{itemize}
-\item $\bdfn(A)\cdot\powfn(\vec{b}) = A\cdot\vec{b}$
-\item $\flattenfn(C)\cdot\powfn(\vec{b}) = C\cdot\powfn(\vec{b})$
-\end{itemize}
-
-The $\flattenfn$ function keeps our encodings small while maintaining correctness with the zero-tester, which is a result of the $\powfn$ function.  In our scheme we set $k = 2$ so that $N = 2\ell$.
-\section{Our construction}
-
-We are now ready to outline our map, which is an instantiation of a graded encoding scheme as in prior works \cite{clt, ggh13a, clt15}.  The basic operations (setup, encoding, addition, multiplication) of our scheme are essentially identical to those of the GSW scheme.
-
-\paragraph{Setup: $(\mathsf{pp},\pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  The parameters $q$ and $n$ define the ring $\Rq$.  Set $m = O(\log q)$ and $N = 2\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $\Rq$.  We generate the {\bf encoding key} $A$ by drawing $\vec{e} \leftarrow \chi^m$, $\vec{a} \leftarrow \Rq^m$, and $t \leftarrow \Rq$.  Set $\vec{b} = \vec{a}t + \vec{e}$ and $\vec{s} = (1, -t)^T$ and $A = \big(\vec{b} \; \big| \; \vec{a}\big)$.  We generate a level-1 encoding $X^{(1)}$ by drawing $R \leftarrow \{0,1\}^{N\times m}$ and setting $X^{(1)} = \flattenfn(I_N + \bdfn(R\cdot A))$.  We generate the {\bf zero-testing parameter} $\pzt$ by first drawing $z \leftarrow \Rq$, $\alpha \leftarrow \chi$ and $\vec{\epsilon}, \vec{\delta} \leftarrow \chi^N$ and then setting $\pzt = \alpha(z^\kappa\vec{v} + \vec{\delta}) + \vec{\epsilon}$ where $\vec{v} =  \powfn(\vec{s})$.  We then output $\mathsf{pp} = (\kappa, q,n,m,N, X^{(1)})$ and $\pzt$.
-
-\paragraph{Encoding:  $C \leftarrow \mathsf{enc}(\mathsf{pp},\mu,i)$.}  In general, a fresh encoding of a plaintext $\mu \in \Rq$ at level-$i$ will look like the following, where $R \xleftarrow{\$} \{0,1\}^{N\times m}$:
-
-$$C = \flattenfn\left(z^{-i}(\mu I_{N} + \bdfn(R\cdot A))\right)$$
-Note that encodings are small as they are the result of the $\flattenfn$ function.  One advantage of this scheme is it allows for the public encoding of plaintext elements because we can make $A$ public.  First, a user will encode their plaintext $\mu$ to level-$i$ by computing: $$C = \flattenfn(\mu\cdot I_N) \cdot \Pi_{j=1}^i X^{(1)}$$ using the  multiplication operator of the scheme.  Astute readers will note that this is the same as multiplying a ciphertext by a constant in GSW.  This is also equivalent to multiplying a level-0 encoding with no noise (the plaintext) to level-$i$.  
-
-Note that we do not need to rerandomize elements encoded in this way because matrix inversion is not homomorphic with respect to the $\flattenfn$ function (i.e. an adversary could not just multiply by $(X^{(1)})^{-1}$ or something similar to go down a level).
-
-\paragraph{Zero testing:  $\mathsf{isZero}(C, \pzt) \stackrel{?}{=} 0/1$.}  To zero-test a (fresh) encoding $C$ of $\mu$ at level-$\kappa$, compute $\vec{w} = C\cdot \pzt$ and output 1 if $||\vec{w}|| < P$ and 0 otherwise.  To see why this is correct, note that we have:  $$A\vec{s} = \vec{b} - \vec{a}t = \vec{e}$$  Thus, $\bdfn(A)\vec{v} = \vec{e}$ as $\vec{v} = \powfn(\vec{s})$.  Additionally, $\flattenfn(C)\cdot\powfn(\vec{s}) = C\cdot \powfn(\vec{s}) = C\cdot\vec{v}$, so we have:
-\begin{align*}
-C\cdot \pzt &= \alpha z^\kappa C\vec{v} + C(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha(z^\kappa z^{-\kappa})(\mu + \bdfn(R\cdot A))\vec{v} + C(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha(\mu \vec{v} + \bdfn(R\cdot A)\vec{v}) + C(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha(\mu \vec{v} + R\vec{e}) + C(\alpha\vec{\delta} + \vec{\epsilon})
-\end{align*} 
-
-Intuitively, note that this element is large if and only if $\mu \not= 0$ because all elements are small except for $\vec{v}$.  Formally, we prove the following lemma in the appendix.
-
-\begin{lemma}
-\label{zerotesting}
-This is the lemma that formally outlines the size difference between a zero and nonzero encoding.
-\end{lemma}
-
-\paragraph{Extraction: $sk \leftarrow \mathsf{ext}(\mathsf{pp}, \pzt, C^{(\kappa)})$.}  As in \cite{ggh13a, clt15} we apply the zero-tester to a level-$\kappa$ encoding $C^{(\kappa)}$ and collect the most significant bits to extract a random function of the underlying plaintext $\mu$.
-
-\begin{lemma}
-\label{extraction}
-This is the lemma that states we can extract a random function of $\lambda$ bits from a level-$\kappa$ encoding.
-\end{lemma}
-
-
-
-\paragraph{Addition \& subtraction.}  For two encodings $C_1$ and $C_2$ at the same level-$i$, define the addition and subtraction functions as follows:
-\begin{align*}
-\mathsf{add}(C_1,C_2) &= \flattenfn(C_1 + C_2)\\
-\mathsf{sub}(C_1,C_2) &= \flattenfn(C_1 - C_2)
-\end{align*}
-As in the GSW scheme, it is clear that these are both correct homomorphic operations with respect to the zero-tester.
-
-\paragraph{Multiplication.}  Suppose that $C_1$ encodes a plaintext $\mu_1$ at level-$i$ and $C_2$ encodes a plaintext $\mu_2$ at level-$j$ with $i+j \leq \kappa$.  Then we define the multiplication operator as follows:
-
-$$\mathsf{mult}(C_1, C_2) = \flattenfn(C_1 \cdot C_2)$$
-To see that this is correct suppose that $i+j = \kappa$ (i.e., we can zero-test).  Then:
-\begin{align*}
-\mathsf{mult}(C_1, C_2)\cdot \pzt &= \alpha (z^\kappa) C_1C_2\vec{v} + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha (z^\kappa z^{-i})C_1(\mu_2\vec{v} + \vec{e_2}) + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha (z^\kappa z^{-i})C_1(\mu_2\vec{v} + \vec{e_2}) + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha(z^\kappa z^{-i} z^{-j})(\mu_1\mu_2 \vec{v} + \mu_2 \vec{e_1} + C_1\vec{e_2}) \\
-&\quad + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})\\
-&= \alpha (\mu_1\mu_2 \vec{v} + \mu_2 \vec{e_1} + C_1\vec{e_2}) + \flattenfn(C_1\cdot C_2)(\alpha\vec{\delta} + \vec{\epsilon})
-\end{align*}
-Note that this expression will be small if and only if $\mu_1\mu_2 = 0$ (and $\mu_2$ is also small).
-
-\subsection{Asymmetric version}
-
-As in CLT and GGH we can instead compute $z_i$ for $i \in [\kappa]$ and encode plaintexts to specific index sets $S \subseteq [\kappa]$ rather than levels.  This is required for some applications like obfuscation.
-
-\subsection{Setting parameters}
-
-As in homomorphic encryption schemes and multilinear maps, the size of the noise at level-$\kappa$ is dependent on the size of the initial error $B_e$, the multilinearity level $\kappa$, and the initial size of plaintexts $B_\mu$.  Specifically, we have the noise bounded by:
-\begin{equation}
-\label{noise1}
-B_\kappa = (nN\cdot B_\mu)^\kappa \cdot B_e
-\end{equation}
-
-Then, when we apply the zero-testing element at level-$\kappa$ we have:
-\begin{equation}
-\label{noise2}
-C\pzt = \alpha (\mu \vec{v} + \vec{e_{\circ}} + C\vec{\delta}) + C\vec{\epsilon}
-\end{equation}
-where the size of $e_{\circ}$ is bounded by $B_\kappa$, as in \eqref{noise1}.  In the case of $\mu = 0$ we then have the size of \eqref{noise2} bounded by $B_\alpha(B_\kappa + nNB_\delta) + nNB_\epsilon$.
-
-
-
-
-\section{Security}
-
-\subsection{Graded DDH}
-In this section we instantiate the Graded Decisional Diffie-Hellman assumption for our scheme, introduced in \cite{ggh13a} as an analogue of the multilinear decisional Diffie-Hellman assumption.  For a full definition of graded encoding schemes, refer to Appendix A.
-
-\begin{definition}[$\kappa$-GDDH]
-\label{kgddh}
-For a security parameter $\lambda \in \mathbb{N}$ the $\kappa$-Graded Decisional Diffie-Hellman assumption is to distinguish between the distributions $\mathcal{D}_0[(\mathsf{pp}, \pzt)]$ and $D_1[(\mathsf{pp}, \pzt)]$ for $(\mathsf{pp}, \pzt) \leftarrow \mathsf{setup}(\lambda, \kappa)$ where: 
-
-$$\mathcal{D}_0[(\mathsf{pp}, \pzt)] = \left\{ \left(\{C_i\}_{i\in [\kappa + 1]}, \gamma \right) \;\middle|\; \begin{array}{ll}
-\forall i \in [\kappa + 1], &  U_i \leftarrow \mathsf{samp}(\mathsf{pp}),\\
-& C_i \leftarrow \mathsf{enc}(\mathsf{pp}, 1, U_i)\\
-\multicolumn{2}{l}{\gamma \leftarrow \mathsf{ext}(\mathsf{pp}, \pzt, U_{\kappa+1} \cdot\Pi_{i \in [\kappa]} C_i)}
-\end{array}\right\}$$
-and
-$$\mathcal{D}_1[(\mathsf{pp}, \pzt)] = \left\{ \left(\{C_i\}_{i\in [\kappa + 1]}, \gamma \right) \;\middle|\; \begin{array}{ll}
-\forall i \in [\kappa + 1], &  U_i \leftarrow \mathsf{samp}(\mathsf{pp}),\\
-& C_i \leftarrow \mathsf{enc}(\mathsf{pp}, 1, U_i)\\
-\multicolumn{2}{l}{\gamma \leftarrow \{0,1\}^\lambda}
-\end{array}\right\}$$
-\end{definition}
-
-We conjecture that this problem is hard for our scheme for reasoning given below.
-
-\subsection{Overview}
-
-Let $n$, $q$ and $\chi$ be set such that the RLWE$_{n,q,\chi}$ assumption holds.  Let $\mathcal{D}_\alpha, \mathcal{D}_\delta, \mathcal{D}_\epsilon$ be discrete Gaussian distributions on $\mathbb{Z}^n$ with widths $\sigma_\alpha, \sigma_\delta, \sigma_\epsilon$ respectively, and let $\ell = O(\log q)$.  
-
-The security of our scheme relies on hiding $t$ and $z$.  With these parameters, an adversary could decrypt an encoding at any level.  We will make a few RLWE-like assumptions based on these parameters.  Note that in all of these assumptions, the ``public key" $\alpha$ is not given out like in the classical RLWE problem, which may increase security (though is not known to be necessary).
-
-\subsection{Previous attacks}
-It is not hard to see that our construction avoids the zeroizing attacks (\cite{chl}) on the \cite{clt} scheme as our encodings and zero-testing elements simply do not support the right operations for those attacks to work (it is helpful to note that the $\flattenfn$ function only preserves some homomorphism with respect to $\powfn$ vectors, which further restricts the sorts of useful operations that can be performed on encodings).
-
-The weak-DL attack on GGH and the variant matrix-GGH (\cite{cgh, hj}) worked by attacking the private modulus $g$, which is a small element of the ring $R$.  This fails in our scheme because do not rely on encodings being small representatives of cosets of $\mathcal{I}_g$---we achieve small encodings (and thus bounded noise growth) through the repeated application of the $\flattenfn$ function, so our ``ideal" is generated by a ``uniform" element, namely, a RLWE instance.  We also have not been able to attack the scheme in the event that $A$ is made public.
-
-Additionally, we may have also reduced the number of potential vulnerabilities by not publishing level-$0$ encodings which we do not need for sampling unlike in e.g. \cite{clt}.
-
-\subsection{Reduction attack on the RLWE ``public key"}
-
-One way the scheme could be attacked is through the search-decision equivalence for RLWE from \cite{lpr}.  That is, if there exists an oracle $\mathcal{O}$ to decide that $(a, b = at+e)$ is drawn from RLWE parameters or from a uniform distribution, then the secret $t$ can be recovered.  In our scheme the zero-testing parameter $\pzt$ would act as such an oracle: an adversary could encode $0$ to level-$0$ using a key $A'$ drawn from a uniform distribution and similarly using the original key $A$.  Then, bringing both encodings to level-$\kappa$ using the public parameters, she could then zero test both.  With high probability the uniform-keyed encoding will be ``large" and the RLWE-keyed encoding will be small when tested, thus providing the adversary the desired oracle.
-
-This attack does not apply to our scheme because the reduction runs in $\mathsf{poly}(q)$ time, but we need $q > 2^\lambda$ for correctness of the zero-testing procedure.  Additionally, we do not publish $A$ as part of the public parameters.
-
-\subsection{Attacks on the zero-testing element}
-
-We now draw our attention to using the zero-testing element in breaking the scheme, as is done in all attacks on previous schemes.  Note that our zero-testing element looks like the following:
-\begin{align*}
-\pzt &= \alpha (z^\kappa \vec{v} + \vec{\delta}) + \vec{\epsilon}\\
-&= \alpha (z^\kappa \powfn(\vec{s}) + \vec{\delta}) + \vec{\epsilon}\\\\
-&= \left( \begin{array}{c}
-\alpha (z^\kappa + \delta_1) + \epsilon_1\\
-\alpha (z^\kappa2 + \delta_2) + \epsilon_2\\
-\vdots \\
-\alpha (z^\kappa2^{\ell-1} + \delta_\ell) + \epsilon_\ell\\
--\alpha  (t z^\kappa + \delta_{\ell+1}) + \epsilon_{\ell + 1}\\
-\vdots \\
--\alpha (t z^\kappa2^{\ell - 1} + \delta_{2\ell}) + \epsilon_{2\ell}\\
-\end{array}\right)
-\end{align*}
-Thus, we need the following assumption to hold so that we protect the parameters $z^\kappa$ and $t$.  Note that this assumption is very similar to RLWE, except that for each new sample we use a ``small" perturbation of the original secret---if $\delta_i$ was drawn from a uniform distribution, this would reduce to RLWE directly.
-
-\begin{assumption}
-\label{rlwevar}
-Draw $s \leftarrow \Rq$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha(s + \delta_i) + \epsilon_i\big)_{i=1}^{\ell} \in \Rq^\ell$, recover $s$.
-\end{assumption}
-
-
-\subsection{Getting parameters from zero-tested encodings}
-
-A zero-tested encoding at level-$i$ will look like the following, where $\vec{e_{\circ}}$ is the error after some number of operations:
-
-$$C \pzt = \alpha z^{\kappa - i}(\mu \vec{v} + \vec{e_{\circ}}) + C(\alpha\vec{\delta} + \vec{\epsilon}) \in \Rq^N$$
-which we can rewrite as:
-$$C\pzt = \alpha z^{\kappa - i}(\mu \vec{v} + \vec{e_{\circ}} + C\vec{\delta}) + C\vec{\epsilon}$$
-Thus, we need the following assumption to hold in the case of $i < \kappa$:
-\begin{assumption}
-\label{rlwevar2}
-Draw $s \leftarrow \Rq$, $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha s \delta_i + \epsilon_i)_{i=1}^{\ell} \in \Rq^\ell$, recover $s$.\\
-\end{assumption}
-
-In the case of $\mu = 0$ we have:
-\begin{equation}\label{eq:topleveltested}
-C\pzt = \alpha z^{\kappa - i}(\vec{e_{\circ}} + C\vec{\delta}) + C\vec{\epsilon}
-\end{equation}
-So the following assumption needs to hold in the case of $i = \kappa$:
-\begin{assumption}
-\label{rlwevar3}
-Draw $\alpha \leftarrow \mathcal{D}_\alpha$, and $(\delta_i, \epsilon_i) \leftarrow \mathcal{D}_\delta \times \mathcal{D}_\epsilon$ for $i \leq \ell$.  Then from the vector $\vec{p} = \big(\alpha \delta_i + \epsilon_i\big)_{i=1}^{\ell} \in \Rq^\ell$, recover either $\delta_i$ or $\epsilon_i$.\\
-\end{assumption}
-
-We could also let $C = \bdfn(A)$, because $A$ is public, giving us:
-$$C\pzt = \alpha z^{\kappa}(\vec{e} + \bdfn(A)\vec{\delta}) + \bdfn(A)\vec{\epsilon}$$
-
-Which reduces to Assumption \ref{rlwevar2}.
-
-\subsection{Some additional notes}
-
-Though none of our assumptions reduce directly to RLWE and nor does the entire scheme's security reduce to any of our variants, we remain confident in the scheme's security based on the fact that the application of the zero-testing parameter only produces instances of these RLWE variants that we presume to be hard.  That is, encodings of $0$ at any level do not seem to present a problem as in previous work.  It is our hope that any successful attack on the scheme would then procure new insight into the standard RLWE problem.
-
-Additionally, we have not been able to break the scheme in the case that $\alpha$ is public (acting as a RLWE public key).
-
-
-
-\section{An application: $N$-way key exchange}
-
-We now present the canonical use-case for our scheme: $N$-way non-interactive key exchange, which we outline in the following steps.
-
-\begin{enumerate}
-\item  Let $\kappa = N - 1$. A trusted third party obtains the public parameters $(\mathsf{pp}, \pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$  and subsequently distributes the parameters to each player.
-
-\item Each player $i$ runs the $\mathsf{samp}(\mathsf{pp})$ algorithm to obtain a level-0 encoding $c_i$ of a random plaintext $\mu_i$.  Then the player computes $C_i \leftarrow \mathsf{enc}(\mathsf{pp}, 1, c_i)$ and publishes this level-1 encoding.
-
-\item The $i$th player now computes the level-$\kappa$ encoding $$U_i = c_i\cdot \Pi_{j\not= i \in [N]} C_j$$ using the multiplication operator of the scheme.
-
-\item  Finally, each player computes $s \leftarrow \mathsf{ext}(\mathsf{pp}, \pzt, U_i)$ to extract the shared secret $s$.
-\end{enumerate}
-
-Correctness follows from Lemma \ref{extraction}, whereas security follows from the hardness of the GDDH assumption for our scheme.
+\input{intro}
+\input{prelim}
+\input{construction}
+\input{security}
+\input{nike}
 
 \newpage
 
-\bibliographystyle{unsrt}
-\bibliography{bibliography}
+%\bibliographystyle{alpha}
+%\bibliography{biblio}
 
-\begin{thebibliography}{90}
+\input{biblio}
 
-  \bibitem[BF01]{bf}  Dan Boneh and Matthew K. Franklin. Identity-based encryption from the weil pairing. In {\em CRYPTO}, volume 2139 of {\em Lecture Notes in Computer Science}, pages 213-229, 2001.
-  
-    \bibitem[BS03]{bs} Dan Boneh and Alice Silverberg. Applications of multilinear forms to cryptography. {\em Contemporary Mathematics}, 324:71?90, 2003.
-    
-    \bibitem[BWZ14]{bwz} Dan Boneh, David J. Wu, and Joe Zimmerman. Immunizing multilinear maps against zeroizing attacks. Cryptology ePrint Archive, Report 2014/930, 2014. http://eprint.iacr.org/.
-    
-    \bibitem[CGH$^+$15]{cgh} Jean-Sebastien Coron and Craig Gentry and Shai Halevi and Tancrede Lepoint and Hemanta K. Maji and Eric Miles and Mariana Raykova and Amit Sahai and Mehdi Tibouchi. Zeroizing Without Low-Level Zeroes: New MMAP Attacks and Their Limitations. Cryptology ePrint Archive, Report 2015/596, 2015. http://eprint.iacr.org/.  To appear at CRYPTO 2015.
-    
-      \bibitem[CHL$^+$14]{chl} Jung Hee Cheon, Kyoohyung Han, Changmin Lee, Hansol Ryu, Damien Stehlé. Cryptanalysis of the multilinear maps over the integers. Cryptology ePrint Archive, Report 2014/906, 2014. http://eprint.iacr.org/.  To appear at EUROCRYPT 2015.
-
-  \bibitem[CLT13]{clt} Jean-Sebastien Coron, Tancrede Lepoint, and Mehdi Tibouchi. Practical multilinear maps over the integers. In {\em CRYPTO}, pages 476-493, 2013.
-  
-  \bibitem[CLT14]{clt14} Jean-Sébastien Coron, Tancréde Lepoint, and Mehdi Tibouchi. Cryptanalysis of two candidate fixes of multilinear maps over the integers. Cryptology ePrint Archive, Report 2014/975, 2014. http://eprint.iacr.org/.
-  
-  \bibitem[CLT15]{clt15} Jean-Sébastien Coron, Tancréde Lepoint, and Mehdi Tibouchi. New multilinear maps over the integers. In R. Gennaro and M. Robshaw, editors, CRYPTO 2015, Lecture Notes in Computer Science. Springer, 2015. To appear.
-
-  \bibitem[GGH13a]{ggh13a}  Sanjam Garg, Craig Gentry, and Shai Halevi. Candidate multilinear maps from ideal lattices. In {\em EUROCRYPT 2013}. Springer Berlin Heidelberg, 2013.
-
-  \bibitem[GGH$^+$13b]{ggh13b} Sanjam Garg, Craig Gentry, Shai Halevi, Mariana Raykova, Amit Sahai, and Brent Waters. Candidate indistinguishability obfuscation and functional encryption for all circuits. Cryptology ePrint Archive, Report 2013/451, 2013. http://eprint.iacr.org/.
-  
-    \bibitem[GGH14a]{ggh14a} Craig Gentry, Sergey Gorbunov, and Shai Halevi. Graph-induced multilinear maps from lattices. Cryptology ePrint Archive, 2014:645, 2014. To appear at TCC 2015.
-  
-  \bibitem[GGH$^+$14b]{ggh14b} Craig Gentry, Shai Halevi, Hemanta K. Maji, and Amit Sahai. Zeroizing without zeroes: Cryptanalyzing multilinear maps without encodings of zero. Cryptology ePrint Archive, Report 2014/929, 2014. http://eprint.iacr.org/.
-  
-  \bibitem[GSW13]{gsw}  Craig Gentry, Amit Sahai, and Brent Waters. Homomorphic Encryption from Learning with Errors: Conceptually-Simpler, Asymptotically-Faster, Attribute-Based. In Advances in Cryptology---CRYPTO 2013, R. Canetti and J. Garay, Eds., vol. 8042 of Lecture Notes in Computer Science. Springer Berlin Heidelberg, 2013, pp. 75-92.
-  
-  \bibitem[HJ15]{hj} Y. Hu and H. Jia. Cryptanalysis of GGH map. Cryptology ePrint Archive, Report 2015/301,
-2015. http://eprint.iacr.org/.
-
-  \bibitem[KGV14]{shield} Alhassan Khedr, Glenn Gulak, and Vinod Vaikuntanathan, SHIELD: Scalable Homomorphic Implementation of Encrypted Data-Classifiers, Cryptology ePrint Archive, Report 2014/838, 2014. http://eprint.iacr.org/.
-  
-  \bibitem[LPR10]{lpr} Vadim Lyubashevsky, Chris Peikert, and Oded Regev. On ideal lattices and learning with errors
-over rings. In EUROCRYPT. 2010.
-
-
-  \end{thebibliography}
-
-\renewcommand\thesection{\Alph{section}}
-\setcounter{section}{0}
-\section{Graded Encoding Schemes}
-
-\section{Proof of Lemma \ref{zerotesting}}
-
-\section{Proof of Lemma \ref{extraction}}
+\input{appendix}
 
 
 
