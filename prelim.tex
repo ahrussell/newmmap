@@ -1,0 +1,60 @@
+\section{Preliminaries}
+
+First, let $\R = \mathbb{Z}[x] / \left<x^n + 1\right>$ where $n$ is a power of 2, and let $\Rq = \R/q\R \cong \mathbb{Z}_q[x] / \left<x^n + 1\right> $ be the ring that contains $\ell = \lceil\log q\rceil$ bit coefficients.  For an element $f \in \R$, let $\norm{k}{f}$ denote the $\ell_k-$norm of the vector representation of $f$ in $\mathbb{Z}^n$ for all $k \in \mathbb{N}$, where $\norm{\infty}{f}$ is the $\ell_\infty$-norm (the largest coefficient of $f$).  For a vector $\vec{v} \in \R^N$, let $\norm{k}{\vec{v}}$ denote the largest element of $\vec{v}$ under the $\ell_k$-norm.
+
+\subsection{Bit operations}
+
+The GSW paper outlines a few operations on vectors that we extend to the ring setting, as in \cite{shield}.  For some $k$, let $\ell = \lceil \log q \rceil$ and $N = k\ell$, and let $\vec{a}$ be a $k$-dimensional vector of ring elements in $\Rq$.  Then, the bit-decomposition function $\bdfn: \Rq^k \to \Rq^N$ is given by $$\bdfn(\vec{a}) = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1})$$ where $a_{i,j}$ is the polynomial whose entries are the $j$-th bit each coefficient in the $i$-th entry of $\vec{a}$.  That is, we decompose a vector $\vec{a}$ that has polynomials with $\ell$-bit coefficients into an $N$-dimensional vector with polynomials of 0/1 coefficients.  $\bdifn: \Rq^N \to \Rq^k$ is the inverse of this operation.  Specifically, for a vector $\vec{a} = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1}) \in \Rq^N$, we have $$\bdifn(\vec{a}) = \left(\sum 2^j a_{1,j}, \ldots, \sum 2^j a_{k, j}\right)$$  Note that we define this function for any vector $\vec{a} \in \Rq^N$, not just vectors with 0/1 polynomials (which is what $\bdfn$ produces).  Next, for a vector $\vec{a} \in \Rq^N$, define $\flattenfn: \Rq^N \to \Rq^N$ composing these functions: $$\flattenfn(\vec{a}) = \bdfn(\bdifn(\vec{a}))$$  Finally, define $\powfn: \Rq^k \to \Rq^N$ by $$\powfn(\vec{a}) = (a_1, 2a_1, \ldots, 2^{\ell-1}a_1, \ldots, a_k, 2a_k, \ldots, 2^{\ell-1}a_k)$$  As in GSW, the important properties of these operations are:
+
+\begin{itemize}
+\item $\left< \bdfn(\vec{a}), \powfn(\vec{b}) \right> = \left< \vec{a}, \vec{b} \right>$
+\item $\left< \flattenfn(\vec{a}), \powfn(\vec{b}) \right> = \left< \vec{a}, \powfn(\vec{b}) \right>$
+\end{itemize}
+
+We extend these operations to matrices by performing them on each row.  Thus, for matrices $A \in \Rq^{N \times k}$, $C \in \Rq^{N \times N}$ and a vector $\vec{b} \in \Rq^k$ we have:
+
+\begin{itemize}
+\item $\bdfn(A)\cdot\powfn(\vec{b}) = A\cdot\vec{b}$
+\item $\flattenfn(C)\cdot\powfn(\vec{b}) = C\cdot\powfn(\vec{b})$
+\end{itemize}
+
+The $\flattenfn$ function keeps our encodings small while maintaining correctness with the zero-tester, which is a result of the $\powfn$ function.  In our scheme we set $k = 2$ so that $N = 2\ell$.
+
+\subsection{GSW encryption}
+
+In this section we define a couple nondeterministic helper functions that correspond to encryption in GSW: 
+
+\begin{description}
+
+\item[$(\vec{v}, A) \leftarrow \mathsf{generate}(1^\lambda, m, \chi):$] For parameters $\lambda, m \in \mathbb{N}$ and $\chi$, an error distribution on $\Rq^m$, $\mathsf{generate}$ outputs a GSW key pair $(\vec{v},A) \in \Rq^N \times \Rq^{m \times 2}$ by drawing $\vec{b} \leftarrow \Rq^m$, $t \leftarrow \Rq$, and $\vec{e}\in \chi^m$.  Set $\vec{a} = \vec{b}t + \vec{e}$ and $\vec{s} = (1, -t)^T$.  Finally, output $\left(\vec{v} = \powfn(s), A = \big(\vec{b} \; \big| \; \vec{a}\big)\right)$.  
+
+\item[$C \leftarrow \mathsf{encrypt}(\mu, A,m):$]  For a plaintext $\mu \in \Rq$, a public key $A \in \Rq^{m \times 2}$ as output by the $\mathsf{generate}$ function and dimension $m \in \mathbb{N}$, $\mathsf{encrypt}$ outputs $\flattenfn(\mu I_N + \bdfn(R\cdot A))$ where $R \leftarrow \{0,1\}^{N\times m}$.  When $A$ and $m$ are unambiguous from context we will write $E(\mu) = \mathsf{encrypt}(\mu, A, m)$.
+
+\item[$\mu \leftarrow \mathsf{decrypt}(C, \vec{v}):$]  Given a ciphertext $C$ of a plaintext $\mu$ and a decryption key $\vec{v}$ as output by the $\mathsf{generate}$ function, $\mathsf{decrypt}$ recovers $\mu$ from the product $C\vec{v}$.  
+\end{description}
+
+Note that decryption is possible because $\vec{v} = \powfn(\vec{s})$ and $A\vec{s} = \vec{a} - \vec{b}t = \vec{e}$, so by the properties of the bit operations above, $\bdfn(R\cdot A)\vec{v} = R\vec{e}$ for any $R \in \Rq^{N \times m}$.  Thus, as we can write $C = \flattenfn(\mu I_N + \bdfn(R\cdot A))$ for a random binary matrix $R$, we have:
+\begin{align*}
+C\vec{v} &= (\mu I_N + \bdfn(R\cdot A))\vec{v}\\
+&= \mu \vec{v} + R\vec{e}
+\end{align*}
+Thus, as $\vec{e}$ is small and the first $\ell$ coefficients of $\vec{v}$ are of the form $2^i$ for $0 \leq i \leq \ell-1$, we can recover $\mu$.
+
+From \cite{gsw} we have a couple important homomorphic properties, which we summarize in the following lemma:
+
+\begin{lemma}[\cite{gsw}]
+\label{gswprop}
+Let $(\vec{v}, A) \leftarrow \mathsf{generate}(1^\lambda, m, \chi)$ for some $\lambda, m, \chi$.  Then addition and multiplication are homomorphic with respect to $\mathsf{decrypt}$ and $\mathsf{encrypt}$:
+\begin{itemize}
+\item $\mathsf{decrypt}(E(\mu_1 + \mu_2), \vec{v}) = \mathsf{decrypt}(E(\mu_1) + E(\mu_2), \vec{v})$
+\item $\mathsf{decrypt}(E(\mu_1\mu_2), \vec{v}) = \mathsf{decrypt}(E(\mu_1)\cdot E(\mu_2), \vec{v})$
+\end{itemize}
+\end{lemma}
+
+It is obvious that the first property holds; we briefly recall the proof from \cite{gsw} that shows the second does as well:
+\begin{align*}
+C_1\cdot C_2\vec{v} &= C_1(\mu_2\vec{v} + \vec{e_2})\\
+&= \mu_2(\mu_1\vec{v} + \vec{e_1}) + C_1\vec{e_2}\\
+&= \mu_1\mu_2\vec{v} + \mu_2\vec{e_1} + C_1\vec{e_2}
+\end{align*}
+Clearly, we can also recover $\mu_1\mu_2$ from this as long as $\mu_2$ and the errors $\vec{e_1}, \vec{e_2}$ are all small relative to $q$ because $C_1$ is the result of the $\flattenfn$ function.

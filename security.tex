@@ -1,0 +1,77 @@
+\section{Security}
+
+\subsection{Graded DDH}
+In this section we instantiate the Graded Decisional Diffie-Hellman assumption for our scheme, introduced in \cite{ggh13a} as the graded encoding scheme analogue of the multilinear decisional Diffie-Hellman assumption in \cite{bs}.  For a full definition of graded encoding schemes, refer to Appendix A.
+
+\begin{definition}[$\kappa$-GDDH]
+\label{kgddh}
+For a security parameter $\lambda \in \mathbb{N}$ the $\kappa$-Graded Decisional Diffie-Hellman assumption is to distinguish between the distributions $\mathcal{D}_0[(\mathsf{pp}, \pzt)]$ and $D_1[(\mathsf{pp}, \pzt)]$ for $(\mathsf{pp}, \pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$ where: 
+
+$$\mathcal{D}_0[(\mathsf{pp}, \pzt)] = \left\{ \left(\{C_i'\}_{i\in [\kappa + 1]}, \gamma \right) \;\middle|\; \begin{array}{ll}
+\forall i \in [\kappa + 1], &  U_i \leftarrow \mathsf{samp}(\mathsf{pp}),\\
+& C_i \leftarrow \mathsf{enc}(\mathsf{pp}, 1, U_i)\\
+& C_i' \leftarrow \mathsf{rerand}(\mathsf{pp}, C_i)\\
+\multicolumn{2}{l}{\gamma \leftarrow \mathsf{ext}(\mathsf{pp}, \pzt, U_{\kappa+1} \cdot\prod_{i \in [\kappa]} C_i)}
+\end{array}\right\}$$
+and
+$$\mathcal{D}_1[(\mathsf{pp}, \pzt)] = \left\{ \left(\{C_i'\}_{i\in [\kappa + 1]}, \gamma \right) \;\middle|\; \begin{array}{ll}
+\forall i \in [\kappa + 1], &  U_i \leftarrow \mathsf{samp}(\mathsf{pp}),\\
+& C_i \leftarrow \mathsf{enc}(\mathsf{pp}, 1, U_i)\\
+& C_i' \leftarrow \mathsf{rerand}(\mathsf{pp}, C_i)\\
+\multicolumn{2}{l}{\gamma \leftarrow \{0,1\}^\lambda}
+\end{array}\right\}$$
+\end{definition}
+
+We conjecture that this problem is hard for our scheme.
+
+\subsection{Overview}
+
+Let $n$, $q$ and $\chi$ be set such that the RLWE$_{n,q,\chi}$ assumption holds.  Let $\mathcal{D}_\alpha, \mathcal{D}_\delta, \mathcal{D}_\epsilon$ be discrete Gaussian distributions on $\mathbb{Z}^n$ with widths $\sigma_\alpha, \sigma_\delta, \sigma_\epsilon$ respectively, and let $\ell = O(\log q)$.  
+
+The security of our scheme relies on hiding $\vec{v}$, $z$ and $T$; with these parameters an adversary could decrypt an encoding at any level.  We attempt to hide these values through creating (R)LWE instances.  Thus, the security of the scheme relies on the fact that using the basic operations of the scheme (zero-testing, multiplication, addition), an adversary is only able to produce these RLWE-esque instances.  
+
+\subsection{Zeroizing attacks}
+Attacks on previous schemes \cite{chl,cgh,hj} that make use of encodings of 0 fail against our scheme for a number of reasons, but the principal advantage that our scheme has over others is that zero-tested encodings of $0$ are not exact multiples of noise elements, and instead result in RLWE-esque instances with some additive noise.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element like our $\alpha$ and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
+$$\left<\w, C \u\right> = (1,1,\ldots, 1)\cdot(\alpha (\bdfn(U)\vec{e_{\circ}} + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon})$$
+where $\vec{e_{\circ}}$ is the noise present in the encoding, and $\alpha, \vec{\delta}$, and $\vec{\epsilon}$ are small ring elements.  So this result is essentially a ring element $hr + e$ in the notation of CLT and GGH, which completely breaks the previous attacks that rely on this multiplicative structure for things like GCD operations. 
+
+\subsection{The homomorphism of $\flattenfn$}
+
+It is helpful to note that the $\flattenfn$ function does not preserve all algebraic structure with respect to $\powfn$ vectors.  For example, matrix multiplication does not work in this sense:
+\begin{align*}
+\flattenfn(AB)\cdot \powfn(\vec{v}) &= AB \cdot \powfn(\vec{v})\\
+&\not= \flattenfn(A)\cdot \flattenfn(B)\cdot \powfn(\vec{v})\\ 
+&= \flattenfn(A)\cdot B\cdot \powfn(\vec{v})
+\end{align*}
+Thus we would expect the use of this function to only reduce the number of possible algebraic attacks.
+
+\subsection{Attacks on the zero-testing element}
+
+We first want to rule out that we cannot get useful information out of the zero-testing elements themselves.  Note that our zero-testing elements look like the following:
+\begin{align*}
+\u &= z^\kappa T\cdot (\alpha (z^\kappa \vec{v} + \vec{\delta}) + \vec{\epsilon})\\
+\w &= (1,1,\ldots, 1)\cdot\bdfn(U)\cdot T^{-1}
+\end{align*}
+where $z^\kappa$, $T$, and $U$ are uniformly random elements.
+
+\subsection{Getting parameters from zero-tested encodings}
+
+We now draw our attention to using the zero-testing element in breaking the scheme, as is done in all attacks on previous candidates.  A zero-tested encoding at level-$i$ will look like the following, where $\vec{e_{\circ}}$ is the error after some number of operations:
+$$\left<\w, C \u\right> = z^{\kappa-i}(1,1,\ldots,1)\cdot(\mu\alpha U \vec{v} + \bdfn(U)\cdot (\alpha\vec{e} + C_\mu(\alpha\vec{\delta} + \vec{\epsilon})))$$
+It is clear that we are not going to be able to get anything useful out of this in the case that $\mu \not= 0$ as $U$ is a uniformly random matrix.  However, in the case that $\mu = 0$ and $i = \kappa$ we have:
+\begin{equation}\label{eq:topleveltested}
+\left<\w, C \u\right> = (1,1,\ldots,1)\cdot(\alpha (\bdfn(U)\cdot \vec{e} + C_\mu\vec{\delta}) + \bdfn(U)\cdot C_\mu\vec{\epsilon})
+\end{equation}
+This essentially reduces to this assumption:
+\begin{assumption}[RLWE-variant]
+\label{rlwevar}
+Given $\alpha s + e \in \Rq$ where $(\alpha, b, c) \leftarrow \mathcal{D}_\alpha \times \mathcal{D}_\delta \times \mathcal{D}_\epsilon$, recover $s$ or $e$.
+\end{assumption}
+
+\subsection{Using other parameters}
+Note that this assumption is a ``first line of defense."  For one thing, the parameters $s$ and $e$ are subset-sums of the coefficients of the actual noise $\vec{\delta}$ and $\vec{\epsilon}$ present in the zero-tester or the canonical RLWE instance $A$. Additionally, even in the case that these noise parameters are recovered it seems infeasible to recover the decryption key from the zero-testing parameters without knowing $T$ or $z$.  
+
+We now consider some cases where other parameters are leaked:  an adversary could do some malicious things by recovering $T$ and $z$---for example, it would be possible to zero-test at any level, and move encodings arbitrarily between levels---but the decryption key in the zero-testing parameter is would still be hidden by the (R)LWE instance with $z^\kappa T$ as a public key, so recovering plaintexts by getting the key seems unlikely using these parameters.  Additionally, although we take the precaution of hiding the parameters $A$ and $\alpha$, we have not been able to attack the scheme in any way in the event that they are made public.
+
+If an adversary had all of $\alpha, T, \vec{\epsilon},$ and $z$ then the adversary could definitely recover the decryption key; however if they were missing one it seems infeasible under similar assumptions to Assumption \ref{rlwevar}.
+
