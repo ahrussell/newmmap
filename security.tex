@@ -56,19 +56,22 @@ where $z^\kappa$, $T$, and $U$ are uniformly random elements.
 
 \subsection{Getting parameters from zero-tested encodings}
 
-We now draw our attention to using the zero-testing element in breaking the scheme, as is done in all attacks on previous schemes.  A zero-tested encoding at level-$i$ will look like the following, where $\vec{e_{\circ}}$ is the error after some number of operations:
-$$\left<\w, C \u\right> = z^{\kappa-i} (1,1,\ldots, 1)\cdot(\alpha (\mu U \vec{v} + \bdfn(U)\vec{e_{\circ}} + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon})$$
+We now draw our attention to using the zero-testing element in breaking the scheme, as is done in all attacks on previous candidates.  A zero-tested encoding at level-$i$ will look like the following, where $\vec{e_{\circ}}$ is the error after some number of operations:
+$$\left<\w, C \u\right> = z^{\kappa-i}(1,1,\ldots,1)\cdot(\mu\alpha U \vec{v} + \bdfn(U)\cdot (\alpha\vec{e} + C_\mu(\alpha\vec{\delta} + \vec{\epsilon})))$$
 It is clear that we are not going to be able to get anything useful out of this in the case that $\mu \not= 0$ as $U$ is a uniformly random matrix.  However, in the case that $\mu = 0$ and $i = \kappa$ we have:
 \begin{equation}\label{eq:topleveltested}
-\left<\w, C \u\right> = (1,1,\ldots,1)\cdot(\alpha (\bdfn(U)\vec{e_{\circ}} + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon})
+\left<\w, C \u\right> = (1,1,\ldots,1)\cdot(\alpha (\bdfn(U)\cdot \vec{e} + C_\mu\vec{\delta}) + \bdfn(U)\cdot C_\mu\vec{\epsilon})
 \end{equation}
 This essentially reduces to this assumption:
 \begin{assumption}[RLWE-variant]
 \label{rlwevar}
-Given $\alpha\delta + \epsilon \in \Rq$ where $(\alpha, \delta, \epsilon) \leftarrow \mathcal{D}_\alpha \times \mathcal{D}_\delta \times \mathcal{D}_\epsilon$, recover $\delta$ or $\epsilon$.
+Given $\alpha s + e \in \Rq$ where $(\alpha, b, c) \leftarrow \mathcal{D}_\alpha \times \mathcal{D}_\delta \times \mathcal{D}_\epsilon$, recover $s$ or $e$.
 \end{assumption}
 
-Note that even in the case that this is a bad hardness assumption for protecting the noise (though there is currently no reason to think so), an adversary will still only be able to recover a subset-sum of the noise.
-\subsection{Some additional notes}
+\subsection{Using other parameters}
+Note that this assumption is a ``first line of defense."  For one thing, the parameters $s$ and $e$ are subset-sums of the coefficients of the actual noise $\vec{\delta}$ and $\vec{\epsilon}$ present in the zero-tester or the canonical RLWE instance $A$. Additionally, even in the case that these noise parameters are recovered it seems infeasible to recover the decryption key from the zero-testing parameters without knowing $T$ or $z$.  
 
-Though we have not been able to reduce the security of our scheme directly to RLWE or other standard assumptions, we remain confident in the scheme's security based on the fact that the application of the zero-testing parameter only produces these instances of a RLWE variant where the ``public key" is not drawn from a uniform distribution (though $\alpha$ is not public anyway).  Additionally, although we take the precaution of hiding the parameters $A$ and $\alpha$, we have not been able to break the scheme in the case that they are made public. 
+We now consider some cases where other parameters are leaked:  an adversary could do some malicious things by recovering $T$ and $z$---for example, it would be possible to zero-test at any level, and move encodings arbitrarily between levels---but the decryption key in the zero-testing parameter is would still be hidden by the (R)LWE instance with $z^\kappa T$ as a public key, so recovering plaintexts by getting the key seems unlikely using these parameters.  Additionally, although we take the precaution of hiding the parameters $A$ and $\alpha$, we have not been able to attack the scheme in any way in the event that they are made public.
+
+If an adversary had all of $\alpha, T, \vec{\epsilon},$ and $z$ then the adversary could definitely recover the decryption key; however if they were missing one it seems infeasible under similar assumptions to Assumption \ref{rlwevar}.
+
