@@ -2,50 +2,43 @@
 
 We are now ready to outline our map, which is an instantiation of a graded encoding scheme as in prior works \cite{clt, ggh13a, clt15}.  The basic operations (setup, encoding, addition, multiplication) of our scheme are essentially identical to those of the GSW scheme.
 
-In general, a fresh encoding of a plaintext $\mu \in \Rq$ at level-$i$ will look like the following, $z$ is a random ring element, $T$ is a uniform matrix, and $A$ is a GSW public key:
-$$C' = z^{-i}T C T^{-1}$$
-where $C$ is a GSW encoding of $\mu$.  That is, $$C = \flattenfn\left(\mu I_{N} + \bdfn(R\cdot A))\right)$$ where $R \leftarrow \{0,1\}^{N\times m}$. Encodings are simply GSW ciphertexts (which are small, as they are a result of the $\flattenfn$ function) pre/post-multiplied by a randomization matrix $T$ and its inverse and by the ring element $z^{-i}$ to introduce the notion of levels (and we work over a polynomial ring instead of the integers).
+In general, a fresh encoding of a plaintext $\mu \in \Rq$ at level-$i$ will look like the following, where $z$ is a random ring element, $T$ is a random matrix, and $A$ is a GSW public key:
+$$C = z^{-i}T \cdot E(\mu)\cdot T^{-1}$$
+recalling that $E(\mu) = \flattenfn\left(\mu I_{N} + \bdfn(R\cdot A))\right)$ is a GSW encryption of $\mu$. Thus, encodings are simply GSW ciphertexts (which are small, as they are a result of the $\flattenfn$ function) pre/post-multiplied by a random matrix $T$ and its inverse and by the ring element $z^{-i}$ to introduce the notion of levels (and we work over a polynomial ring instead of the integers).  For an encoding $C$ we will denote the corresponding GSW encryption of $\mu$ by $C_\mu$.
 
-\paragraph{Setup: $(\mathsf{pp},\pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  The parameters $q$ and $n$ define the ring $\Rq$.  Set $m = O(\log q)$ and $N = 2\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $\Rq$.  $\sigma$ is a parameter for sampling plaintext elements from a discrete Gaussian distribution.  We generate the {\bf encoding key} $A$ by drawing $\vec{e} \leftarrow \chi^m$, $\vec{a} \leftarrow \Rq^m$, and $t \leftarrow \Rq$.  Set $\vec{b} = \vec{a}t + \vec{e}$ and $\vec{s} = (1, -t)^T$ and $A = \big(\vec{b} \; \big| \; \vec{a}\big)$.  We generate the {\bf zero-testing parameter} $\pzt$ by first drawing uniform matrices $U \leftarrow \Rq^{N\times 2}$ and $T \leftarrow \Rq^{N \times N}$ and setting $$S = \bdfn(U)\cdot T^{-1}$$  Then draw a uniform element $z \leftarrow \Rq$ and then a few ``somewhat small" elements $\alpha \leftarrow \mathcal{D}_{\mathbb{Z}^n, \sigma_\alpha}$, $\vec{\epsilon} \leftarrow (\mathcal{D}_{\mathbb{Z}^n, \sigma_\delta})^N$, and $\vec{\delta} \leftarrow (\mathcal{D}_{\mathbb{Z}^n, \sigma_\epsilon})^N$ for some parameters $\sigma_\alpha, \sigma_\delta,$ and $\sigma_\epsilon$.  We then set $$\p = z^\kappa T\cdot (\alpha(\vec{v} + \vec{\delta}) + \vec{\epsilon})$$ where $\vec{v} =  \powfn(\vec{s})$.  Intuitively, $\p$ is a vector of $N$ RLWE ``encryptions" of the $N$ coefficients of $\vec{v}$, the original decryption key in GSW.  We generate a level-1 encoding $Y$ by drawing $R \leftarrow \{0,1\}^{N\times m}$ and setting $$Y = T\cdot\flattenfn(I_N + \bdfn(R\cdot A))\cdot T^{-1}$$  which is a level-1 encoding of 1. We generate the rerandomization parameters $X_i$ by drawing $R_i \leftarrow \{0,1\}^{N \times m}$ and setting $$X_i = z^{-i}T\cdot\flattenfn(\bdfn(R_i\cdot A))\cdot T^{-1}$$ for $1 \leq i \leq \tau$.  Note that these are level-1 encodings of 0. We output $\mathsf{pp} = (\kappa, q,n,m,N,\sigma, Y, \{X_i\}_{i=1}^\tau)$, $P$, and $\pzt = (S,\p)$.
+\paragraph{Setup: $(\mathsf{pp},\pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  The parameters $q$ and $n$ define the ring $\Rq$.  Set $m = O(\log q)$ and $N = 2\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $\Rq$.  $\sigma$ is a parameter for sampling plaintext elements from a discrete Gaussian distribution.  We generate the GSW key pair $(\vec{v},A) \mathsf{generate}(1^\lambda,m, \chi)$.  We generate the {\bf zero-testing parameter} $\pzt$ by first drawing uniform matrices $U \leftarrow \Rq^{N\times 2}$ and $T \leftarrow \Rq^{N \times N}$ and setting $$\w = (1,1,\ldots,1)\cdot \bdfn(U)\cdot T^{-1}$$  Then draw a uniform element $z \leftarrow \Rq$ and then a few ``somewhat small" elements $\alpha \leftarrow \mathcal{D}_{\mathbb{Z}^n, \sigma_\alpha}$, $\vec{\epsilon} \leftarrow (\mathcal{D}_{\mathbb{Z}^n, \sigma_\delta})^N$, and $\vec{\delta} \leftarrow (\mathcal{D}_{\mathbb{Z}^n, \sigma_\epsilon})^N$ for some parameters $\sigma_\alpha, \sigma_\delta,$ and $\sigma_\epsilon$.  We then set $$\u = z^\kappa T\cdot (\alpha(\vec{v} + \vec{\delta}) + \vec{\epsilon})$$  Intuitively, $\u$ is a (R)LWE ``encryption" of $\vec{v}$, the original decryption key in GSW (plus some other noise that we need).  We generate a level-1 encoding $Y$ by drawing $R \leftarrow \{0,1\}^{N\times m}$ and setting $$Y = T\cdot\flattenfn(I_N + \bdfn(R\cdot A))\cdot T^{-1}$$  which is a level-1 encoding of 1. We generate the rerandomization parameters $X_i$ by drawing $R_i \leftarrow \{0,1\}^{N \times m}$ and setting $$X_i = z^{-i}T\cdot\flattenfn(\bdfn(R_i\cdot A))\cdot T^{-1}$$ for $1 \leq i \leq \tau$.  Note that these are level-1 encodings of 0. We output $\mathsf{pp} = (\kappa, q,n,m,N,\sigma, Y, \{X_i\}_{i=1}^\tau)$, $P$, and $\pzt = (\w,\u)$.
 
-\paragraph{Zero testing:  $\mathsf{isZero}(C', \pzt) \stackrel{?}{=} 0/1$.}  To zero-test a (fresh) encoding $C' = z^{-\kappa} T C T^{-1}$ of $\mu$ at level-$\kappa$, compute $\vec{w} = S\cdot C\cdot \p$ and output 1 if $||\vec{w}|| < P$ and 0 otherwise.  To see why this is correct, note that we have:  $$A\vec{s} = \vec{b} - \vec{a}t = \vec{e}$$  Thus, $\bdfn(A)\vec{v} = \vec{e}$ as $\vec{v} = \powfn(\vec{s})$.  Additionally, $\flattenfn(C)\cdot\powfn(\vec{s}) = C\cdot \powfn(\vec{s}) = C\cdot\vec{v}$, so we have:
+\paragraph{Zero testing:  $\mathsf{isZero}(C, \pzt) \stackrel{?}{=} 0/1$.}  To zero-test a (fresh) encoding $C = z^{-\kappa} T C_\mu T^{-1}$ of $\mu$ at level-$\kappa$, output 1 if $\left<\w, C\u\right> < P$ and 0 otherwise.  To see briefly why this is correct, recall the properties of the bit operations and GSW decryption from Section 2.  Then we have:
 \begin{align*}
-S\cdot C'\cdot \p &= S \cdot z^{-\kappa} T C T^{-1} \cdot \p \\
-&= z^{-\kappa} ST C  T^{-1} \cdot z^\kappa T\cdot (\alpha(z^\kappa\vec{v} + \vec{\delta}) + \vec{\epsilon})\\
-&= (z^{-\kappa} z^{\kappa}) ST \cdot C (\alpha(\vec{v} + \vec{\delta}) + \vec{\epsilon})\\
-&= ST \cdot (\alpha(C\vec{v} + C\vec{\delta}) + C\vec{\epsilon})\\
-&= ST \cdot (\alpha((\mu I_{N} + \bdfn(R\cdot A)))\vec{v} + C\vec{\delta}) + C\vec{\epsilon})\\
-&= ST \cdot (\alpha((\mu \vec{v} + \vec{e})) + C\vec{\delta}) + C\vec{\epsilon})\\
-&= \bdfn(U)T^{-1}\cdot T \cdot (\alpha((\mu \vec{v} + \vec{e})) + C\vec{\delta}) + C\vec{\epsilon})\\
-&= \bdfn(U) \cdot (\alpha((\mu \vec{v} + \vec{e})) + C\vec{\delta}) + C\vec{\epsilon})\\
-&= \alpha((\mu U \vec{v} + \bdfn(U)\vec{e}) + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon}\\
+C\u &= z^{-\kappa} T C_\mu T^{-1} \cdot \u\\
+&= z^{-\kappa} T C_\mu  T^{-1} \cdot z^\kappa T\cdot ((\alpha(z^\kappa\vec{v} + \vec{\delta}) + \vec{\epsilon})\\
+&= (z^{-\kappa} z^{\kappa}) T \cdot C_\mu (\alpha(\vec{v} + \vec{\delta}) + \vec{\epsilon})\\
+&= T \cdot (\alpha(C\vec{v} + C_\mu\vec{\delta}) + C_\mu\vec{\epsilon})\\
+&= T \cdot (\alpha((\mu I_{N} + \bdfn(R\cdot A)))\vec{v} + C_\mu\vec{\delta}) + C_\mu\vec{\epsilon})\\
+&= T \cdot (\alpha((\mu \vec{v} + \vec{e})) + C_\mu\vec{\delta}) + C_\mu\vec{\epsilon})
+\end{align*}
+and
+\begin{align*}
+\left<\w, C\u\right> &= (1,1,\ldots,1)\cdot\bdfn(U)T^{-1}\cdot T \cdot (\alpha((\mu \vec{v} + \vec{e}) + C_\mu\vec{\delta}) + C_\mu\vec{\epsilon})\\
+&= (1,1,\ldots,1)\cdot\bdfn(U) \cdot (\alpha((\mu \vec{v} + \vec{e}) + C_\mu\vec{\delta}) + C_\mu\vec{\epsilon})\\
+&= (1,1,\ldots,1)\cdot(\mu\alpha U \vec{v} + \bdfn(U)(\alpha\vec{e} + C_\mu(\vec{\delta} + C_\mu\vec{\epsilon})))\\
+&= (1,1,\ldots,1)\cdot(\mu\alpha U \vec{v} + small)
 \end{align*} 
 Intuitively, note that this element is large if and only if $\mu \not= 0$ because all elements are small except for $\vec{v}$ and $U$.  Formally, we prove the following lemma in the appendix.
 
 \begin{lemma}
 \label{zerotesting}
-This is the lemma that formally outlines the size difference between a zero and nonzero encoding (informally stated for now).  Let $C' = z^{-\kappa} TCT^{-1}$ where $C$ is a GSW ciphertext of a plaintext $\mu \in \Rq$ (i.e., $C\vec{v}$ decrypts to $\mu$).  Then $\norm{\infty}{S\cdot C' \cdot \p} < P$ if and only if $\mu = 0$.
+This is the lemma that formally outlines the size difference between a zero and nonzero encoding (informally stated for now).  Let $C = z^{-\kappa} TC_\mu T^{-1}$ where $C_\mu$ is a GSW encryption of $\mu \in \Rq$ (i.e., $C_\mu\vec{v}$ decrypts to $\mu$).  Then $\left<\w, C\u\right> < P$ if and only if $\mu = 0$.
 \end{lemma}
 
-\paragraph{Addition \& subtraction.}  For two encodings $C'_1$ and $C'_2$ at the same level-$i$, addition and subtraction are the corresponding matrix operations.  We demonstrate the correctness of these operations with addition; subtraction follows immediately.  Suppose that the encodings $C'_1$ and $C'_2$ have corresponding GSW ciphertexts $C_1$ and $C_2$ of plaintexts $\mu_1$ and $\mu_2$.  Then:
-\begin{align*}
-(C_1 + C_2)\vec{v} &= C_1\vec{v} + C_2\vec{v}\\
-&= (\mu_1 \vec{v} + \vec{e_1}) + (\mu_2 \vec{v} + \vec{e_2})\\
-&= (\mu_1 + \mu_2)\vec{v} + \vec{e'}
-\end{align*}
-Thus, $C_1+ C_2$ is a valid GSW ciphertext of $\mu_1 + \mu_2$, so the correctness with respect to zero-testing for $C'_1 + C'_2$ follows from Lemma \ref{zerotesting}.
+\paragraph{Addition \& subtraction.}  For two encodings $C_1$ and $C_2$ at the same level-$i$, addition and subtraction are the corresponding matrix operations. As $C_{\mu_1}+ C_{\mu_2}$ is a valid GSW ciphertext of $\mu_1 + \mu_2$ by Lemma \ref{gswprop}, the correctness with respect to zero-testing for $C_1 + C_2 = z^{-i}T(C_{\mu_1}+C_{\mu_2})T^{-1}$ follows from Lemma \ref{zerotesting}.  Subtraction follows similarly.
 
-\paragraph{Multiplication.}  Multiplication is also matrix multiplication.  Suppose that $C'_1$ and $C'_2$ are encodings at level-$i$ and level-$j$, respectively, with $i+j \leq \kappa$ and corresponding GSW ciphertexts $C_1$ and $C_2$.  First note that
+\paragraph{Multiplication.}  Multiplication in our scheme is also matrix multiplication.  Suppose that $C_1$ and $C_2$ are encodings at level-$i$ and level-$j$, respectively, with $i+j \leq \kappa$ and corresponding GSW ciphertexts $C_{\mu_1}$ and $C_{\mu_2}$.  First note that
 \begin{align*}
-C'_1\cdot C'_2 &= (z^{-i}TC_1T^{-1})\cdot(z^{-j}TC_2T^{-1})\\
-&= z^{-i-j}T(C_1\cdot C_2)T^{-1}
+C_1\cdot C_2 &= (z^{-i}TC_{\mu_1}T^{-1})\cdot(z^{-j}TC_{\mu_2}T^{-1})\\
+&= z^{-i-j}T(C_{\mu_1}\cdot C_{\mu_2})T^{-1}
 \end{align*}
-We now simply need to prove that $C_1 \cdot C_2$ correctly decrypts in GSW and the result follows as before:
-\begin{align*}
-(C_1\cdot C_2)\vec{v} &= C_1(\mu_2 \vec{v} + \vec{e_2}) \\
-&= \mu_1\mu_2\vec{v} + \mu_2\vec{e_1} + C_1\vec{e_2}
-\end{align*}
-which properly decrypts $\mu_1\mu_2$ in GSW if $\mu_2$ is small---for this reason our message space is restricted, as in CLT and GGH (to control noise growth).
+which is a level-$(i+j)$ encoding of $\mu_1\mu_2$ by Lemma \ref{zerotesting}, because $C_{\mu_1} \cdot C_{\mu_2}$ correctly decrypts to $\mu_1\mu_2$, by Lemma \ref{gswprop}, so long as $\mu_2$ is small---for this reason our message space is restricted, as in CLT and GGH (to control noise growth).
 
 \paragraph{Sampling:  $\mu \leftarrow \mathsf{samp}(\mathsf{pp})$.}  To sample a level-0 encoding---that is, a plaintext element---simply draw $\mu\leftarrow \mathcal{D}_{\mathbb{Z}^n, \sigma}$.
 
