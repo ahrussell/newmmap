@@ -26,14 +26,16 @@ We conjecture that this problem is hard for our scheme.
 
 \subsection{Overview}
 
-Let $n$, $q$ and $\chi$ be set such that the RLWE$_{n,q,\chi}$ assumption holds.  Let $\mathcal{D}_\alpha, \mathcal{D}_\delta, \mathcal{D}_\epsilon$ be discrete Gaussian distributions on $\mathbb{Z}^n$ with widths $\sigma_\alpha, \sigma_\delta, \sigma_\epsilon$ respectively, and let $\ell = O(\log q)$.  
+Let $n$, $q$ and $\chi$ be set such that the LWE$_{n,q,\chi}$ assumption holds.  Let $\mathcal{D}_\alpha, \mathcal{D}_\delta, \mathcal{D}_\epsilon$ be discrete Gaussian distributions on $\mathbb{Z}^n$ with widths $\sigma_\alpha, \sigma_\delta, \sigma_\epsilon$ respectively.
 
-The security of our scheme relies on hiding $\vec{v}$, $z$ and $T$; with these parameters an adversary could decrypt an encoding at any level.  We attempt to hide these values through creating (R)LWE instances.  Thus, the security of the scheme relies on the fact that using the basic operations of the scheme (zero-testing, multiplication, addition), an adversary is only able to produce these RLWE-esque instances.  
+The security of our scheme relies on hiding $\vec{v}$, $z$ and $T$; with these parameters an adversary could decrypt an encoding at any level.  We attempt to hide these values through creating LWE instances.  Thus, the security of the scheme relies on the fact that using the basic operations of the scheme (zero-testing, multiplication, addition), an adversary is only able to produce these LWE-esque instances.  
 
-\subsection{Zeroizing attacks}
-Attacks on previous schemes \cite{chl,cgh,hj} that make use of encodings of 0 fail against our scheme for a number of reasons, but the principal advantage that our scheme has over others is that zero-tested encodings of $0$ are not exact multiples of noise elements, and instead result in RLWE-esque instances with some additive noise.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element like our $\alpha$ and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
+\subsection{Zeroizing attacks, SubM, DLIN}
+Attacks on previous schemes \cite{chl,cgh,hj} that make use of encodings of 0 fail against our scheme for a number of reasons. The principal advantage that our scheme has over others is that zero-tested encodings of $0$ are not exact multiples of noise elements, and instead result in RLWE-esque instances with some additive noise.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element, like our $\alpha$, and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
 $$\left<\w, C \u\right> = (1,1,\ldots, 1)\cdot(\alpha (\bdfn(U)\vec{e_{\circ}} + \bdfn(U)\cdot C\vec{\delta}) + \bdfn(U)\cdot C\vec{\epsilon})$$
-where $\vec{e_{\circ}}$ is the noise present in the encoding, and $\alpha, \vec{\delta}$, and $\vec{\epsilon}$ are small ring elements.  So this result is essentially a ring element $hr + e$ in the notation of CLT and GGH, which completely breaks the previous attacks that rely on this multiplicative structure for things like GCD operations. 
+where $\vec{e_{\circ}}$ is the noise present in the encoding.  So this result is essentially a ring element $hr + e$ in the notation of CLT and GGH, which breaks the previous attacks that rely on this multiplicative structure for things like computing GCDs and determinants. 
+
+The most recent CLT construction \cite{clt15} changes the zero-testing parameter so that zero-tested elements also have some additive term over the integers, due to the unknown modulus $x_0$, so that the attack fails in a similar way.  For that reason the authors conjecture that the subgroup membership (SubM) and decision linear (DLIN) problems are hard in their new version, as the attacks that break those assumptions in the old CLT and GGH no longer apply.  Similarly, we believe those problems to be hard in our map.
 
 \subsection{The homomorphism of $\flattenfn$}
 
@@ -47,20 +49,21 @@ Thus we would expect the use of this function to only reduce the number of possi
 
 \subsection{Attacks on the zero-testing element}
 
-We first want to rule out that we cannot get useful information out of the zero-testing elements themselves.  Note that our zero-testing elements look like the following:
+We first want to rule out that we cannot get useful information out of the zero-testing elements themselves.  Note that our zero-testing elements are the following vectors:
 \begin{align*}
-\u &= z^\kappa T\cdot (\alpha (z^\kappa \vec{v} + \vec{\delta}) + \vec{\epsilon})\\
+\u &= z^\kappa T\cdot (\alpha (\vec{v} + \vec{\delta}) + \vec{\epsilon})\\
 \w &= (1,1,\ldots, 1)\cdot\bdfn(U)\cdot T^{-1}
 \end{align*}
-where $z^\kappa$, $T$, and $U$ are uniformly random elements.
+where $z^\kappa$, $T$, and $U$ are uniformly random elements.  Multiplying them together we get:
+$$z^\kappa (1,1,\ldots, 1)\cdot (\alpha (U\vec{s} + \bdfn(U)\cdot\vec{\delta}) + \bdfn(U)\cdot\vec{\epsilon})$$
 
 \subsection{Getting parameters from zero-tested encodings}
 
 We now draw our attention to using the zero-testing element in breaking the scheme, as is done in all attacks on previous candidates.  A zero-tested encoding at level-$i$ will look like the following, where $\vec{e_{\circ}}$ is the error after some number of operations:
-$$\left<\w, C \u\right> = z^{\kappa-i}(1,1,\ldots,1)\cdot(\mu\alpha U \vec{v} + \bdfn(U)\cdot (\alpha\vec{e} + C_\mu(\alpha\vec{\delta} + \vec{\epsilon})))$$
-It is clear that we are not going to be able to get anything useful out of this in the case that $\mu \not= 0$ as $U$ is a uniformly random matrix.  However, in the case that $\mu = 0$ and $i = \kappa$ we have:
+$$\left<\w, C \u\right> = z^{\kappa-i}(1,1,\ldots,1)\cdot(\mu(\alpha U \vec{s}) + \bdfn(U)\cdot (\alpha\vec{e_\circ} + C_\mu(\alpha\vec{\delta} + \vec{\epsilon})))$$
+This is a standard RLWE instance in the case that $\mu \not= 0$ as $U$ is a uniformly random matrix.  However, in the case that $\mu = 0$ and $i = \kappa$ we have:
 \begin{equation}\label{eq:topleveltested}
-\left<\w, C \u\right> = (1,1,\ldots,1)\cdot(\alpha (\bdfn(U)\cdot \vec{e} + C_\mu\vec{\delta}) + \bdfn(U)\cdot C_\mu\vec{\epsilon})
+\left<\w, C \u\right> = (1,1,\ldots,1)\cdot(\alpha (\bdfn(U)\cdot \vec{e_\circ} + C_\mu\vec{\delta}) + \bdfn(U)\cdot C_\mu\vec{\epsilon})
 \end{equation}
 This essentially reduces to this assumption:
 \begin{assumption}[RLWE-variant]
