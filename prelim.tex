@@ -1,10 +1,10 @@
 \section{Preliminaries}\label{sec:prelim}
 
-For a vector $\vec{v} \in \Z^N$, let $\norm{k}{\vec{v}}$ denote the $\ell_k$-norm of the vector for any $k \in \mathbb{N}\cup \{\infty\}$. For any $m \in \mathbb{N}$ we denote the set $\{1,2,\ldots,m\}$ by $[m]$.
+For a vector $\vec{v} \in \Z^N$ let $\norm{k}{\vec{v}}$ denote the $\ell_k$-norm of the vector for any $k \in \mathbb{N}\cup \{\infty\}$. For any $m \in \mathbb{N}$ we denote the set $\{1,2,\ldots,m\}$ by $[m]$.
 
 \subsection{Bit operations}
 
-The GSW paper outlines a few operations on vectors, as in \cite{shield}.  For some $k$, let $\ell = \lceil \log q \rceil$ and $N = k\ell$, and let $\vec{a}$ be a $k$-dimensional vector of ring elements in $\Zq$.  Then, the bit-decomposition function $\bdfn: \Zq^k \to \Zq^N$ is given by $$\bdfn(\vec{a}) = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1})$$ where $a_{i,j}$ is the polynomial whose entries are the $j$-th bit each coefficient in the $i$-th entry of $\vec{a}$.  That is, we decompose a vector $\vec{a}$ that has $\ell$-bit coefficients into an $N$-dimensional vector with 0/1 coefficients.  $\bdifn: \Zq^N \to \Zq^k$ is the inverse of this operation.  Specifically, for a vector $\vec{a} = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1}) \in \Zq^N$, we have $$\bdifn(\vec{a}) = \left(\sum 2^j a_{1,j}, \ldots, \sum 2^j a_{k, j}\right)$$  Note that we define this function for any vector $\vec{a} \in \Zq^N$, not just vectors with 0/1 coefficients (which is what $\bdfn$ produces).  Next, for a vector $\vec{a} \in \Zq^N$, define $\flattenfn: \Zq^N \to \Zq^N$ by composing these functions: $$\flattenfn(\vec{a}) = \bdfn(\bdifn(\vec{a}))$$  Finally, define $\powfn: \Zq^k \to \Zq^N$ by $$\powfn(\vec{a}) = (a_1, 2a_1, \ldots, 2^{\ell-1}a_1, \ldots, a_k, 2a_k, \ldots, 2^{\ell-1}a_k)$$  As in GSW, the important properties of these operations are:
+The GSW paper outlines a few operations on vectors.  For some $k$ and $q$, let $\ell = \lceil \log q \rceil$ and $N = k\ell$, and let $\vec{a}$ be a $k$-dimensional vector of ring elements in $\Zq$.  Then, the bit-decomposition function $\bdfn: \Zq^k \to \Zq^N$ is given by $$\bdfn(\vec{a}) = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1})$$ where $a_{i,j}$ is the $j$-th bit in the $i$-th entry of $\vec{a}$.  That is, we decompose a vector $\vec{a}$ that has $\ell$-bit coefficients into an $N$-dimensional vector with 0/1 coefficients.  $\bdifn: \Zq^N \to \Zq^k$ is the inverse of this operation.  Specifically, for a vector $\vec{a} = (a_{1,0}, \ldots, a_{1, \ell-1}, \ldots, a_{k, 0}, \ldots, a_{k, \ell-1}) \in \Zq^N$, we have $$\bdifn(\vec{a}) = \left(\sum 2^j a_{1,j}, \ldots, \sum 2^j a_{k, j}\right)$$  Note that we define this function for any vector $\vec{a} \in \Zq^N$, not just vectors with 0/1 coefficients (which is what $\bdfn$ produces).  Next, for a vector $\vec{a} \in \Zq^N$, define $\flattenfn: \Zq^N \to \Zq^N$ by composing these functions: $$\flattenfn(\vec{a}) = \bdfn(\bdifn(\vec{a}))$$  Finally, define $\powfn: \Zq^k \to \Zq^N$ by $$\powfn(\vec{a}) = (a_1, 2a_1, \ldots, 2^{\ell-1}a_1, \ldots, a_k, 2a_k, \ldots, 2^{\ell-1}a_k)$$  As in GSW, the important properties of these operations are:
 
 \begin{itemize}
 \item $\langle \bdfn(\vec{a}), \powfn(\vec{b}) \rangle = \langle \vec{a}, \vec{b} \rangle$
@@ -18,17 +18,17 @@ We extend these operations to matrices by performing them on each row.  Thus, fo
 \item $\flattenfn(C)\cdot\powfn(\vec{b}) = C\cdot\powfn(\vec{b})$
 \end{itemize}
 
-The $\flattenfn$ function keeps our encodings small while maintaining correctness with the zero-tester, which is a result of the $\powfn$ function.  As in GSW, we set $k = (n+1)$ where $n$ is set for security of LWE.
+The $\flattenfn$ function keeps our encodings small.  As in GSW, we set $k = (n+1)$ where $n$ is set to produce secure LWE instances.
 
 \subsection{GSW encryption}
 
-In this section we define a couple helper procedures that correspond to encryption in GSW.  We set $N = (n+1)\lceil \log q\rceil$ wherever we have parameters $n$ and $q$.
+In this section we define a few procedures that correspond to encryption and decryption in GSW.  We set $N = (n+1)\lceil \log q\rceil$ wherever we have parameters $n$ and $q$.
 
 \begin{description}
 
-\item[$(\vec{v}, A) \leftarrow \mathsf{generate}(1^\lambda, n, m, q, \chi):$] For parameters $\lambda, n, m, q \in \mathbb{N}$ and $\chi$, an error distribution on $\Zq^{m\times 1}$, $\mathsf{generate}$ outputs a GSW key pair $(\vec{v},A) \in \Zq^N \times \Zq^{m \times n}$, , by drawing $B \leftarrow \Zq^{m\times n}$, $\vec{t} \leftarrow \Zq^{n \times 1}$, and $\vec{e}\leftarrow \chi$.  Set $\vec{b} = B\vec{t} + \vec{e}$ and $\vec{s} = (1, -t_1, -t_2, \ldots, -t_n)^T \in \Zq^{(n+1)\times m}$.  Set $\vec{v} = \powfn(s) \in \Zq^N$ and $A = \big(\vec{b} \; \big| \; B\big) \in \Zq^{m \times (n+1)}$.  Finally, output $(\vec{v}, A)$.  Note that $A\vec{s} = \vec{b} - B\vec{t} = \vec{e}$.  We use this for decryption.
+\item[$(\vec{v}, A) \leftarrow \mathsf{generate}(1^\lambda, n, m, q, \chi):$] For parameters $\lambda, n, m, q \in \mathbb{N}$ and $\chi$, an error distribution on $\Zq^{m\times 1}$, $\mathsf{generate}$ outputs a GSW key pair $(\vec{v},A) \in \Zq^N \times \Zq^{m \times n}$, , by drawing $B \leftarrow \Zq^{m\times n}$, $\vec{t} \leftarrow \Zq^{n \times 1}$, and $\vec{e}\leftarrow \chi$.  Set $\vec{b} = B\vec{t} + \vec{e}$ and $\vec{s} = (1, -t_1, -t_2, \ldots, -t_n)^T \in \Zq^{(n+1)\times m}$.  Set $\vec{v} = \powfn(s) \in \Zq^N$ and $A = \big(\vec{b} \; \big| \; B\big) \in \Zq^{m \times (n+1)}$.  Finally, output $(\vec{v}, A)$.  Note that $A\vec{s} = \vec{b} - B\vec{t} = \vec{e}$.  We use this fact for decryption.
 
-\item[$C \leftarrow \mathsf{encrypt}(\mu, A,m):$]  For a plaintext $\mu \in \Zq$, a public key $A \in \Zq^{m \times (n+1)}$ as output by the $\mathsf{generate}$ function and dimension $m \in \mathbb{N}$, $\mathsf{encrypt}$ outputs $\flattenfn(\mu I_N + \bdfn(R\cdot A))$ where $R \leftarrow \{0,1\}^{N\times m}$.  When $A$ and $m$ are unambiguous from context we will write $E(\mu) = \mathsf{encrypt}(\mu, A, m)$.
+\item[$C \leftarrow \mathsf{encrypt}(\mu, A,m):$]  For a plaintext $\mu \in \Zq$, a public key $A \in \Zq^{m \times (n+1)}$ as output by the $\mathsf{generate}$ function, and dimension $m \in \mathbb{N}$, $\mathsf{encrypt}$ outputs $\flattenfn(\mu I_N + \bdfn(R\cdot A))$ where $R \leftarrow \{0,1\}^{N\times m}$.  When $A$ and $m$ are unambiguous from context we will write $E(\mu) = \mathsf{encrypt}(\mu, A, m)$.
 
 \item[$\mu \leftarrow \mathsf{decrypt}(C, \vec{v}):$]  Given a ciphertext $C$ of a plaintext $\mu$ and a decryption key $\vec{v}$ as output by the $\mathsf{generate}$ function, $\mathsf{decrypt}$ recovers $\mu$ from the product $C\vec{v}$.  
 \end{description}
@@ -57,4 +57,4 @@ C_1\cdot C_2\vec{v} &= C_1(\mu_2\vec{v} + \vec{e_2})\\
 &= \mu_2(\mu_1\vec{v} + \vec{e_1}) + C_1\vec{e_2}\\
 &= \mu_1\mu_2\vec{v} + \mu_2\vec{e_1} + C_1\vec{e_2}
 \end{align*}
-Clearly, we can also recover $\mu_1\mu_2$ from this as long as $\mu_2$ and the errors $\vec{e_1}, \vec{e_2}$ are all small relative to $q$ because $C_1$ is the result of the $\flattenfn$ function.
+Clearly, we can also recover $\mu_1\mu_2$ from this as long as $\mu_2$ and the errors $\vec{e_1}, \vec{e_2}$ are all small relative to $q$ because $C_1 \in \{0,1\}^{N\times N}$ is the result of the $\flattenfn$ function.
