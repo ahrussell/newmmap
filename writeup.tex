@@ -11,7 +11,9 @@
 \usepackage{fullpage}
 
 \def\R{\mathcal{R}}
-\def\Rq{\mathcal{R}_q}
+\def\Rq{\mathbb{R}_q}
+\def\Z{\mathbb{Z}}
+\def\Zq{\mathbb{Z}_q}
 \def\bdfn{\mathsf{BitDecomp}}
 \def\flattenfn{\mathsf{Flatten}}
 \def\bdifn{\mathsf{BitDecomp}^{-1}}
@@ -34,7 +36,7 @@
 
 
 
-\title{Candidate Multilinear Maps from RLWE-variants}
+\title{Candidate Multilinear Maps from LWE-variants}
 \author{Andrew H. Russell\thanks{Pomona College, \texttt{ahr12012@mymail.pomona.edu}.  Work performed while at the University of Bristol.} \and Nigel Smart\thanks{\texttt{nigel@cs.bris.ac.uk}}}
 \date{\today}
 
@@ -48,7 +50,7 @@
 
 \maketitle
 \begin{abstract}
-Multilinear maps are widely used cryptographic primitives in key exchange, functional encryption, obfuscation, and more.  However, the only constructions we have are based on non-standard assumptions and have been successfully attacked in various ways.  We propose a new multilinear map based on a ring variant of the GSW homomorphic encryption scheme that has its security based on variants of the standard ring learning with errors (RLWE) problem.  Our construction exploits the properties that ciphertexts are small and decrypted elements are large if and only if the plaintext is zero.  These features allow us to hide the decryption key and publish it as a zero-tester. Though the security of our construction does not fully reduce to the RLWE assumption, it avoids the attacks made on other constructions, and we present our candidate as a step forward in basing multilinear maps on more reasonable assumptions. 
+Multilinear maps are widely used cryptographic primitives in key exchange, functional encryption, obfuscation, and more.  However, the only constructions we have are based on non-standard assumptions and have been successfully attacked in various ways.  We propose a new multilinear map based on a ring variant of the GSW homomorphic encryption scheme that has its security based on a variant of the standard learning with errors (LWE) problem.  Our construction exploits the properties that ciphertexts are small and decrypted elements are large if and only if the plaintext is zero.  These features allow us to hide the decryption key and publish it as a zero-tester. Though the security of our construction does not fully reduce to the LWE assumption, it avoids the attacks made on other constructions, so we present our candidate as a step forward in basing multilinear maps on more reasonable assumptions. 
 \end{abstract}
 
 \input{intro}
