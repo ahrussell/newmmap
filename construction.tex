@@ -58,18 +58,7 @@ As in CLT and GGH we can instead compute $z_i$ for $i \in [\kappa]$ and encode p
 
 \subsection{Setting parameters}
 
-Our parameters will depend on security and noise.  We want to set $n,q,\chi$ so that the LWE$_{n,q,\chi}$ assumption holds for a security level of $2^\lambda$.  Noise growth is somewhat dependent on the application of the multilinear map.  In key exchange, for example, there will be some number of initial addition operations to perform sampling and rerandomization, whereas in branching program-based obfuscation low-level encodings are able to have less noise (there is no need for public sampling or rerandomization), but there will be intermediate addition operations.  Let $B_\mu$ be the bound on plaintext values, $B_C$ be the bound on Specifically, as in \cite{gsw} we have the noise of $\kappa$ multiplications  bounded by:
-\begin{equation}
-\label{noise1}
-B_\kappa = (N + B_\mu)^\kappa \cdot B_\chi
-\end{equation}
-
-Then, when we apply the zero-testing element at level-$\kappa$ we have:
-\begin{equation}
-\label{noise2}
-\vec{1}\cdot(\mu(U \vec{s}) + \bdfn(U)\cdot (\vec{e}_C + C_\mu\vec{\epsilon}))\\
-\end{equation}
-where the size of $\vec{e}_C$ is bounded by $B_\kappa$, as in \eqref{noise1}.  In the case of $\mu = 0$ we then have the size of \eqref{noise2} bounded by $N(B_\kappa + N^\kappa B_\epsilon$.
+TODO.
 
 
 
