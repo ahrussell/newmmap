@@ -58,3 +58,10 @@ C_1\cdot C_2\vec{v} &= C_1(\mu_2\vec{v} + \vec{e_2})\\
 &= \mu_1\mu_2\vec{v} + \mu_2\vec{e_1} + C_1\vec{e_2}
 \end{align*}
 Clearly, we can also recover $\mu_1\mu_2$ from this as long as $\mu_2$ and the errors $\vec{e_1}, \vec{e_2}$ are all small relative to $q$ because $C_1 \in \{0,1\}^{N\times N}$ is the result of the $\flattenfn$ function.
+
+We also have a brief security result from \cite{gsw,reg05}:
+
+\begin{lemma}[\cite{gsw, reg05}]
+\label{gswsec}
+Let $params = (n,q,\chi,m)$ be such that the LWE$_{n,q,\chi}$ assumption holds.  Then, for $m = O(n\log q)$, and $A, R$ as generated above, the joint distribution $(A, R\cdot A)$ is computationally indistinguishable from uniform over $\Zq^{m \times (n+1)} \times \Zq^{N \times (n+1)}$.
+\end{lemma}

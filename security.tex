@@ -26,9 +26,7 @@ We conjecture that this problem is hard for our scheme.
 
 \subsection{Overview}
 
-
-\subsection{Security of the GSW encryptions}   
-We can view (fresh) GSW encryptions as indistinguishable from random binary matrices due to Lemma 1 in \cite{gsw}.
+The security of our scheme is based on the LWE problem in a few ways (though a full reduction does not seem possible at this point).  First, GSW encryptions are protected by the fact that LWE pairs are indistinguishable from random; we can view (fresh) GSW encryptions as indistinguishable from random binary matrices due to Lemma 1 in \cite{gsw}.  Of course, this hardness assumption necessarily breaks in our case because we have a zero-testing procedure, but in the case that the plaintext is non-zero we cause a ``decryption" error so that the plaintext is a multiple of a secret random matrix and cannot be recovered.  Zero-tested encodings of zero can also be viewed as LWE instances where the public key is not published and some values are necessarily small.  This feature allows us to avoid the zeroizing attacks from before.  Thus, we conjecture that problems such as GDDH, SubM, and DLIN are hard in our scheme.
 
 \subsection{Zeroizing attacks, SubM, DLIN}
 Attacks on previous schemes \cite{chl,cgh,hj} that make use of encodings of 0 fail against our scheme for a number of reasons. The principal advantage that our scheme has over others is that zero-tested encodings of $0$ are not exact multiples of noise elements, and instead result in LWE-esque instances with some additive noise.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element, and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
@@ -65,10 +63,10 @@ This is a standard ``LWE instance" in the case that $\mu \not= 0$ as $U$ is a un
 \begin{equation}\label{eq:topleveltested}
 \left<\w, C \u\right> = \vec{1}\cdot \bdfn(U)\cdot (\vec{e}_C + C_\mu\vec{\epsilon})
 \end{equation}
-We can view this as an LWE instance where the ``public" key $C_\mu$ is the product of $\kappa$ GSW encryptions (binary matrices), the secret is drawn from the discrete Gaussian $\mathcal{D}_{\Z^N, \sigma'}$, and the error $\vec{e}_C$ is drawn from the discrete Gaussian $\mathcal{D}_{\Z^N, \sigma}$.  We then take a random subset sum of this LWE vector by pre-multiplying by $\vec{1}\cdot\bdfn(U)$.  We conjecture that it is infeasible to extract useful parameters from this resulting integer.
+We can view this as an LWE instance where the ``public" key $C_\mu$ is the product of $\kappa$ GSW encryptions (binary matrices), the secret is drawn from the discrete Gaussian $\mathcal{D}_{\Z^N, \sigma'}$, and the error $\vec{e}_C$ is drawn from the discrete Gaussian $\mathcal{D}_{\Z^N, \sigma}$.  We then take a random subset sum of this LWE vector by pre-multiplying with $\vec{1}\cdot\bdfn(U)$.  We conjecture that it is infeasible to extract useful parameters from this resulting integer based on the hardness of the related problems.
 
 \subsection{RLWE variant}
-We could consider working over the ring $\Rq = \R/q\R \cong \Zq/\langle x^n + 1 \rangle$ instead of $\Zq$ (and let $N = 2\ell$ instead of $N = (n+1)\ell$).  We then could set the zero-testing vector $\u = T\cdot(\alpha\vec{v} + \vec{\epsilon})$ for some small ring element $\alpha \in \Rq$.  This would then make zero-tested encodings of $0$ look like:
-$$\vec{1}\cdot \bdfn(U)\cdot (\alpha\vec{e}_C + C_\mu\vec{\epsilon}$$
-This would then make the resulting value a ring element that looks like the RLWE-esque instance $\alpha r + e$.
+We could consider working over the ring $\Rq = \R/q\R$, where $R = \Z[x]/\langle x^n + 1 \rangle$, instead of $\Zq$ (and let $N = 2\ell$ instead of $N = (n+1)\ell$).  We then could set the zero-testing vector $\u = T\cdot(h\vec{v} + \vec{\epsilon})$ for some small ring element $h \in \Rq$.  This would then make zero-tested encodings of $0$ look like:
+$$\vec{1}\cdot \bdfn(U)\cdot (h\vec{e}_C + C_\mu\vec{\epsilon})$$
+This would then make the resulting value a ring element that looks like the RLWE-esque instance $hr + e$.
 

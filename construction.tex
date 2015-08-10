@@ -6,9 +6,9 @@ In general, a fresh encoding of a plaintext $\mu \in \Zq$ at level-$i$ will look
 $$C = z^{-i}T \cdot E(\mu)\cdot T^{-1}$$
 recalling that $E(\mu) = \flattenfn\left(\mu I_{N} + \bdfn(R\cdot A))\right)$ is a GSW encryption of $\mu$. Thus, encodings are simply GSW ciphertexts (which are small, as they are a result of the $\flattenfn$ function) pre/post-multiplied by a random matrix $T$ and its inverse and by the parameter $z^{-i}$ to introduce the notion of levels.  For an encoding $C$ of a plaintext $\mu$ we will denote the corresponding GSW encryption by $C_\mu$.  Let $\vec{1}$ denote the row vector $(1,1,\ldots, 1) \in \Zq^{1 \times N}$.
 
-\paragraph{Setup: $(\mathsf{pp},\pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  Let $n,q, \chi$ be such that the LWE$_{n,q,\chi}$ assumption holds for a security level of $\lambda$.  Set $m = O(\log q)$ and $N = (n+1)\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $\Zq$.  $\sigma$ is a parameter for sampling plaintext elements from a discrete Gaussian distribution.  We generate the GSW key pair $(\vec{v},A) \leftarrow \mathsf{generate}(1^\lambda,n,m, \chi)$.  We generate the zero-testing parameter $\pzt$ by first drawing uniform matrices $U \leftarrow \Zq^{N\times (n+1)}$ and $T \leftarrow \Zq^{N \times N}$ and setting $$\w = \vec{1}\cdot \bdfn(U)\cdot T^{-1}$$  Then draw a uniform element $z \leftarrow \Zq$ and a ``somewhat small" element $\vec{\epsilon} \leftarrow (\mathcal{D}_{\mathbb{Z}, \sigma'})^N$ for a parameter $\sigma'$.  We then set $$\u = z^\kappa T\cdot (\vec{v} + \vec{\epsilon})$$  We generate a level-1 encoding of 1 $$Y = z^{-1}T\cdot E(1) \cdot T^{-1}$$  For a parameter $\tau$ we generate the rerandomization parameters $$X_i = z^{-1}T\cdot E(0) \cdot T^{-1} \quad \forall i \in [\tau]$$  Note that these are level-1 encodings of 0. We output $\mathsf{pp} = (\kappa, q,N,\sigma, Y, \{X_i\}_{i=1}^\tau)$, $P$, and $\pzt = (\w,\u)$.
+\paragraph{Setup: $(\mathsf{pp},\pzt) \leftarrow \mathsf{setup}(1^\lambda, 1^\kappa)$.}  Given the security parameter $\lambda$ and the multilinearity level $\kappa$, we generate the public parameters and the zero-testing element.  Let $n,q, \chi$ be such that the LWE$_{n,q,\chi}$ assumption holds for a security level of $\lambda$.  Set $m = O(n\log q)$ and $N = (n+1)\ell$ where $\ell = \lceil \log q \rceil$.  Let $\chi$ be an error distribution on $\Zq$.  $\alpha$ is the size (in bits) of freshly encoded or sampled plaintext elements.  We generate the GSW key pair $(\vec{v},A) \leftarrow \mathsf{generate}(1^\lambda,n,m, \chi)$.  We generate the zero-testing parameter $\pzt$ by first drawing uniform matrices $U \leftarrow \Zq^{N\times (n+1)}$ and $T \leftarrow \Zq^{N \times N}$ and setting $$\w = \vec{1}\cdot \bdfn(U)\cdot T^{-1}$$  Then draw a uniform element $z \leftarrow \Zq$ and a ``somewhat small" element $\vec{\epsilon} \leftarrow (\mathcal{D}_{\mathbb{Z}, \sigma})^N$ for a parameter $\sigma$.  We then set $$\u = z^\kappa T\cdot (\vec{v} + \vec{\epsilon})$$  We generate the sampling/encoding parameters $$B_i = T\cdot E(2^i) \cdot T^{-1} \quad \forall i \in \{0,1,\ldots,\alpha-1\}$$  We generate a level-1 encoding of 1 $$Y = z^{-1}T\cdot E(1) \cdot T^{-1}$$  For a parameter $\tau$ we generate the rerandomization parameters $$X_i = z^{-1}T\cdot E(0) \cdot T^{-1} \quad \forall i \in [\tau]$$  Note that these are level-1 encodings of 0. We output $\mathsf{pp} = (\kappa, q,N,\alpha, \{B_i\}_{i=0}^{\alpha-1}, Y, \{X_i\}_{i=1}^\tau)$, and $\pzt = (\w,\u)$.
 
-\paragraph{Zero testing:  $\mathsf{isZero}(C, \pzt) \stackrel{?}{=} 0/1$.}  To zero-test an encoding $C = z^{-\kappa} T C_\mu T^{-1}$ of $\mu$ at level-$\kappa$, output 1 if $|\left<\w, C\u\right>| < P$ and 0 otherwise.  To see briefly why this is correct, recall the properties of the bit operations and GSW decryption from Section \ref{sec:prelim}.  Then we have the following, where $\vec{e}_C$ is the error present in the GSW encryption $C_\mu$:
+\paragraph{Zero testing:  $\mathsf{isZero}(C, \pzt) \stackrel{?}{=} 0/1$.}  To zero-test an encoding $C = z^{-\kappa} T C_\mu T^{-1}$ of $\mu$ at level-$\kappa$, output 1 if $|\left<\w, C\u\right>| < q^{3/4}$ and 0 otherwise.  To see briefly why this is correct, recall the properties of the bit operations and GSW decryption from Section \ref{sec:prelim}.  Then we have the following, where $\vec{e}_C$ is the error present in the GSW encryption $C_\mu$:
 \begin{align*}
 C\u &= z^{-\kappa} T C_\mu T^{-1} \cdot \u\\
 &= z^{-\kappa} T C_\mu  T^{-1} \cdot z^\kappa T\cdot (\vec{v} + \vec{\epsilon})\\
@@ -23,11 +23,11 @@ which gives us
 &= \vec{1}\cdot(\mu(U \vec{s}) + \bdfn(U)\cdot (\vec{e}_C + C_\mu\vec{\epsilon}))\\
 &= \vec{1}\cdot(\mu(big) + small)
 \end{align*} 
-Intuitively, note that this element is large if and only if $\mu \not= 0$ because all elements are small except for $\vec{v}$ and $U$.  Formally, we prove the following lemma in the appendix.
+Intuitively, note that this element is large if and only if $\mu \not= 0$ because all elements are small except for $\vec{v}$ and $U$.  Formally, we prove the following lemma in Appendix \ref{sec:zerotestingproof}.
 
 \begin{lemma}
 \label{zerotesting}
-This is the lemma that formally outlines the size difference between a zero and nonzero encoding (informally stated for now).  Let $C = z^{-\kappa} TC_\mu T^{-1}$ where $C_\mu$ is a GSW encryption of $\mu \in \Zq$ (i.e., $C_\mu\vec{v}$ decrypts to $\mu$).  Then $\norm{\infty}{\left<\w, C\u\right>} < P$ if and only if $\mu = 0$.
+Let our parameters be set as above.  In particular, let $C = z^{-\kappa} TC_\mu T^{-1}$ where $C_\mu$ is a GSW encryption of $\mu \in \Zq$.  That is, $C\mu\vec{v} = \mu\vec{v} + \vec{e}_C$ for some vector $\vec{e}_C$.  Suppose that $B_C > \norm{\infty}{C_\mu}$, $B_{e} > \norm{\infty}{\vec{e}_C}$, $B_\epsilon > \norm{\infty}{\vec{\epsilon}}$ and $q > N^4(B_e + B_CB_\epsilon)^{4/3}$. Then $|\langle w, C\u\rangle| < q^{3/4}$ if and only if $\mu = 0$.
 \end{lemma}
 
 \paragraph{Addition \& subtraction.}  Addition and subtraction are the corresponding matrix operations for two encodings $C_1$ and $C_2$ at the same level-$i$, . As $C_{\mu_1}+ C_{\mu_2}$ is a valid GSW ciphertext of $\mu_1 + \mu_2$ by Lemma \ref{gswprop}, the correctness with respect to zero-testing for $C_1 + C_2 = z^{-i}T(C_{\mu_1}+C_{\mu_2})T^{-1}$ follows from Lemma \ref{zerotesting}.  Subtraction follows similarly.
@@ -39,11 +39,11 @@ C_1\cdot C_2 &= (z^{-i}TC_{\mu_1}T^{-1})\cdot(z^{-j}TC_{\mu_2}T^{-1})\\
 \end{align*}
 which is a level-$(i+j)$ encoding of $\mu_1\mu_2$ by Lemma \ref{zerotesting}, because $C_{\mu_1} \cdot C_{\mu_2}$ correctly decrypts to $\mu_1\mu_2$, by Lemma \ref{gswprop}, so long as $\mu_2$ is small---for this reason our message space is restricted to control noise growth, as in CLT and GGH.
 
-\paragraph{Sampling:  $\mu \leftarrow \mathsf{samp}(\mathsf{pp})$.}  To sample a level-0 encoding---that is, a plaintext element---simply draw $\mu\leftarrow \mathcal{D}_{\mathbb{Z}^n, \sigma}$.
+\paragraph{Sampling:  $C^{(0)} \leftarrow \mathsf{samp}(\mathsf{pp})$.}  We borrow this idea of public sampling/encoding from \cite{bwz}.  To sample a level-0 encoding, first draw $\mu\leftarrow [0,2^\alpha)\cap \Z$.  Let $\vec{m} = \bdfn(\mu) \in \{0,1\}^\alpha$.  Then output $C^{(0)} = \sum_{i=0}^{\alpha-1} m_iB_i$, which we can see is a level-0 encoding of $\mu$ because each $B_i$ is a level-0 encoding of $2^i$.
 
-\paragraph{Rerandomization: $C' \leftarrow \mathsf{rerand}(\mathsf{pp}, C)$.}  To rerandomize a level-1 encoding $C$, draw $r_j \leftarrow \{0,1\}$ for $0 \leq j \leq \tau$ and compute $$C' = C + \sum_{j=1}^\tau r_jX_j$$ using the addition operator of the scheme.
+\paragraph{Rerandomization: $C' \leftarrow \mathsf{rerand}(\mathsf{pp}, C)$.}  TODO. 
 
-\paragraph{Encoding:  $C \leftarrow \mathsf{enc}(\mathsf{pp},U,i)$.}  A user can encode a plaintext $\mu$ to level-$i$ by first computing $Y' \leftarrow \mathsf{rerand}(\mathsf{pp}, Y)$, which will be a rerandomized level-1 encoding of 1, and then setting $$C = \mu \cdot \left(Y'\right)^i$$ using the multiplication operator of the scheme, which will be a level-$i$ encoding of $\mu$.
+\paragraph{Encoding:  $C \leftarrow \mathsf{enc}(\mathsf{pp},C^{(0)},i)$.}  To encode a level-0 encoding $C^{(0)}$ at level-$i$, first compute $Y' \leftarrow \mathsf{rerand}(\mathsf{pp}, Y)$, which will be a rerandomized level-1 encoding of 1.  Then output $C = C^{(0)}\cdot \left(Y'\right)^i$.
 
 \paragraph{Extraction: $sk \leftarrow \mathsf{ext}(\mathsf{pp}, \pzt, C^{(\kappa)})$.}  As in \cite{ggh13a, clt15} we apply the zero-tester to a level-$\kappa$ encoding $C^{(\kappa)}$ and collect the most significant bits to extract a random function of the underlying plaintext $\mu$.
 
@@ -54,14 +54,14 @@ This is the lemma that states we can extract a random function of $\lambda$ bits
 
 \subsection{Asymmetric variants}
 
-As in CLT and GGH we can instead compute $z_i$ for $i \in [\kappa]$ and encode plaintexts to specific index sets $S \subseteq [\kappa]$ rather than levels.  This is required for some applications like obfuscation.  We can also break the multiplicative commutativity of encodings (plaintexts would will commute) and enforce a particular order of multiplication by generating many matrices $T_i$ rather than a single matrix $T$.
+As in CLT and GGH we can instead compute $z_i$ for $i \in [\kappa]$ and encode plaintexts to specific index sets $S \subseteq [\kappa]$ rather than levels.  This is required for some applications like obfuscation.  We can also break the multiplicative commutativity of encodings (plaintexts would still commute) and enforce a particular order of multiplication by generating many matrices $T_i$ rather than a single matrix $T$.
 
 \subsection{Setting parameters}
 
-As in homomorphic encryption schemes and multilinear maps, the size of the noise at level-$\kappa$ is dependent on the size of the initial error $B_e$, the multilinearity level $\kappa$, and the initial size of plaintexts $B_\mu$.  Specifically, we have the noise bounded by:
+Our parameters will depend on security and noise.  We want to set $n,q,\chi$ so that the LWE$_{n,q,\chi}$ assumption holds for a security level of $2^\lambda$.  Noise growth is somewhat dependent on the application of the multilinear map.  In key exchange, for example, there will be some number of initial addition operations to perform sampling and rerandomization, whereas in branching program-based obfuscation low-level encodings are able to have less noise (there is no need for public sampling or rerandomization), but there will be intermediate addition operations.  Let $B_\mu$ be the bound on plaintext values, $B_C$ be the bound on Specifically, as in \cite{gsw} we have the noise of $\kappa$ multiplications  bounded by:
 \begin{equation}
 \label{noise1}
-B_\kappa = (nN\cdot B_\mu)^\kappa \cdot B_e
+B_\kappa = (N + B_\mu)^\kappa \cdot B_\chi
 \end{equation}
 
 Then, when we apply the zero-testing element at level-$\kappa$ we have:
@@ -69,17 +69,7 @@ Then, when we apply the zero-testing element at level-$\kappa$ we have:
 \label{noise2}
 \vec{1}\cdot(\mu(U \vec{s}) + \bdfn(U)\cdot (\vec{e}_C + C_\mu\vec{\epsilon}))\\
 \end{equation}
-where the size of $\vec{e}_C$ is bounded by $B_\kappa$, as in \eqref{noise1}.  In the case of $\mu = 0$ we then have the size of \eqref{noise2} bounded by 
+where the size of $\vec{e}_C$ is bounded by $B_\kappa$, as in \eqref{noise1}.  In the case of $\mu = 0$ we then have the size of \eqref{noise2} bounded by $N(B_\kappa + N^\kappa B_\epsilon$.
 
-\paragraph{Parameters that need to be set.}
-
-\begin{itemize}
-\item $n$, the size of the LWE secrets.  Dependent on LWE security.
-\item $q$, the size of the underlying field.  Dependent on LWE security and (more importantly) the size of zero-tested elements, which depends on $n, N, \chi, \kappa, \sigma, \sigma'$.
-\item $\sigma$, the parameter for the Gaussian that samples plaintexts.  GGH bounds the size of their ciphertexts (not their plaintexts by $q^{1/8}$).
-\item $\sigma'$, the parameter for the Gaussians that draw a noise element for the zero-tester.  Should be ``as large as possible" but obviously cannot yield a uniform distribution.
-\item $\chi$, the error distribution for the LWE instance $A$.
-\item $\tau$, the number of encodings of $0$ we publish for rerandomization.
-\end{itemize}
 
 

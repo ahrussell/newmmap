@@ -49,5 +49,23 @@ A (symmetric) \emph{$\kappa$-graded encoding scheme} for a ring $R$ is a system 
 \end{definition}
 
 \section{Proof of Lemma \ref{zerotesting}}
+\label{sec:zerotestingproof}
+
+By hypothesis we have $q > N^4 (B_e + B_C B_\epsilon)^{4/3}$ giving us
+\begin{equation}
+\label{eq:qbound}
+q^{3/4} > N^3 (B_e + B_C B_\epsilon)
+\end{equation}
+
+Now suppose that $\mu = 0$.  Then by \eqref{eq:qbound} we have 
+\begin{align*}
+|\left<\w, C\u\right>| &= |\vec{1}\cdot \bdfn(U)\cdot (\vec{e}_C + C_\mu\vec{\epsilon})|\\
+&\leq N^2 (B_e + N B_C B_\epsilon)\\
+&\leq N^3 (B_e + B_C B_\epsilon)\\
+&< q^{3/4}
+\end{align*}
+
+TODO: show other direction.
+
 
 \section{Proof of Lemma \ref{extraction}}
