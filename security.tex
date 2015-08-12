@@ -1,5 +1,9 @@
 \section{Security}
 
+\subsection{Overview}
+
+The security of our scheme is based on the LWE problem in a few ways (though a full reduction does not seem possible at this point).  First, GSW encryptions are protected by the fact that LWE pairs are indistinguishable from random; we can view (fresh) GSW encryptions as indistinguishable from random binary matrices due to Lemma 1 in \cite{gsw}.  Of course, this hardness assumption necessarily breaks in our case because we have a zero-testing procedure, but in the case that the plaintext is nonzero we cause a ``decryption" error so that the plaintext is a multiple of a secret random matrix and cannot be recovered.  Zero-tested encodings of zero can also be viewed as LWE instances where the public key is not published and some values are necessarily small.  This feature allows us to avoid the zeroizing attacks from before.  Thus, we conjecture that problems such as GDDH, SubM, and DLIN are hard in our scheme.
+
 \subsection{Graded DDH}
 In this section we instantiate the Graded Decisional Diffie-Hellman assumption for our scheme, introduced in \cite{ggh13a} as the graded encoding scheme analogue of the multilinear decisional Diffie-Hellman assumption in \cite{bs}.  For a full definition of graded encoding schemes, refer to Appendix A.
 
@@ -22,11 +26,7 @@ $$\mathcal{D}_1[(\mathsf{pp}, \pzt)] = \left\{ \left(\{C_i'\}_{i\in [\kappa + 1]
 \end{array}\right\}$$
 \end{definition}
 
-We conjecture that this problem is hard for our scheme.
 
-\subsection{Overview}
-
-The security of our scheme is based on the LWE problem in a few ways (though a full reduction does not seem possible at this point).  First, GSW encryptions are protected by the fact that LWE pairs are indistinguishable from random; we can view (fresh) GSW encryptions as indistinguishable from random binary matrices due to Lemma 1 in \cite{gsw}.  Of course, this hardness assumption necessarily breaks in our case because we have a zero-testing procedure, but in the case that the plaintext is non-zero we cause a ``decryption" error so that the plaintext is a multiple of a secret random matrix and cannot be recovered.  Zero-tested encodings of zero can also be viewed as LWE instances where the public key is not published and some values are necessarily small.  This feature allows us to avoid the zeroizing attacks from before.  Thus, we conjecture that problems such as GDDH, SubM, and DLIN are hard in our scheme.
 
 \subsection{Zeroizing attacks, SubM, DLIN}
 Attacks on previous schemes \cite{chl,cgh,hj} that make use of encodings of 0 fail against our scheme for a number of reasons. The principal advantage that our scheme has over others is that zero-tested encodings of $0$ are not exact multiples of noise elements, and instead result in LWE-esque instances with some additive noise.  To illustrate, a zero-tested encoding of $0$ in \cite{clt} or \cite{ggh13a} is of the form $hr$ where $h$ is a ``small-ish" noise element, and $r$ is the noise present in the encoding.  In our scheme, however, a zero-tested encoding of $0$ is of the form
